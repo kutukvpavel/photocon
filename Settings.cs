@@ -11,5 +11,6 @@ public class Settings
     public string? LoadLocation { get; set; }
     public string? ElectrometerConnectionString { get; set; }
     public string? FluidNcConnectionString { get; set; }
-    public float BacklashCompensation { get; set; } = 0.1f; // nm
+    public float BacklashCompensationNm { get; set; } = 0.1f; // nm
+    public int FluidNcAutoRepoortIntervalMs { get; set; } = 100; // ms
 }
