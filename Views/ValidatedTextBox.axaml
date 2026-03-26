@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:photocon.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ScottPlot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+        xmlns:local="using:photocon.Views"
+        x:Class="photocon.Views.ValidatedTextBox">
+
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="Margin" Value="5,0,2,0" />
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="auto,*" HorizontalAlignment="Stretch">
+        <TextBlock x:Name="txtLabel"/>
+        <TextBox Grid.Column="1" x:Name="txtValue"/>
+    </Grid> 
+</UserControl>

@@ -1,0 +1,5 @@
+SaveLocation: /home/paul
+LoadLocation: /home/paul
+SerialPortName: /dev/ttyUSB0
+SerialPortTimeout: 60000
+WebsocketConnectionString: ws://fluidnc.local:81/

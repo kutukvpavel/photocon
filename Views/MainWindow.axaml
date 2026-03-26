@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:photocon.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:photocon.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="photocon.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="photocon">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Resources>
+        <Thickness x:Key="ExpanderContentPadding">0</Thickness>
+        <Thickness x:Key="ExpanderHeaderPadding">0</Thickness>
+        <Thickness x:Key="ExpanderChevronMarginMy">0</Thickness>
+        <StaticResource x:Key="ExpanderChevronMargin" ResourceKey="ExpanderChevronMarginMy"></StaticResource>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="*" RowDefinitions="auto,auto,auto,*">
+        <Menu Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
+            <MenuItem Header="File">
+                <MenuItem Header="Load points from file" Click="LoadMenuItem_Click"/>
+                <MenuItem Header="Save points to file" Click="SaveMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        <Expander Grid.Row="1" ExpandDirection="Down" HorizontalAlignment="Stretch" Header="Scan Parameters" Margin="3">
+            <local:ScanParamsEditor Grid.Column="0" Grid.Row="1" DataContext="{Binding ScanParamsContext}" />
+        </Expander>
+    </Grid>
+
+</Window>
