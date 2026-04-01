@@ -1,3 +1,5 @@
+using YamlDotNet.Serialization;
+
 namespace photocon.Models
 {
     public class ScanParams
@@ -10,5 +12,8 @@ namespace photocon.Models
         public float Speed { get; set; } = 1; // nm/min
         public float Start { get; set; } = 400; // nm
         public float End { get; set; } = 200; // nm
+
+        [YamlIgnore]
+        public bool IsBacklashCorrectionRequired => Start > End;
     }
 }
