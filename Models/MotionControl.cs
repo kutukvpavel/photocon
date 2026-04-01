@@ -160,13 +160,13 @@ namespace photocon.Models
                     Port.Write("$H\n");
                     break;
                 case MotionControlStates.Homed:
-                    Port.Write(string.Format("G0 X{0:F2}\n", p.Start, CultureInfo.InvariantCulture));
+                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}\n", p.Start));
                     break;
                 case MotionControlStates.WaitingAtStart:
-                    Port.Write(string.Format("G1 X{0:F2} F{1:F4}\n", p.End, p.Speed, CultureInfo.InvariantCulture));
+                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}\n", p.End, p.Speed));
                     break;
                 case MotionControlStates.End:
-                    Port.Write(string.Format("G0 X{0:F2}\n", p.Start, CultureInfo.InvariantCulture));
+                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}\n", p.Start));
                     break;
                 default: break;
             }
