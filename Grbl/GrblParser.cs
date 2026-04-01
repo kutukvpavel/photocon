@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace photocon.Grbl
 {
@@ -15,9 +14,11 @@ namespace photocon.Grbl
     }
     public enum States
     {
+        Home,
         Idle,
         Run,
-        Other
+        Other,
+        Unknown
     }
     public readonly struct StatusReport
     {
@@ -27,6 +28,7 @@ namespace photocon.Grbl
             {
                 "Idle" => States.Idle,
                 "Run" => States.Run,
+                "Home" => States.Home,
                 _ => States.Other
             };
             Position = float.Parse(position, CultureInfo.InvariantCulture);

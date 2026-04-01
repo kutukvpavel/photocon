@@ -2,6 +2,7 @@
 using System.Reactive;
 using ReactiveUI;
 using photocon.Models;
+using System.Text;
 
 namespace photocon.ViewModels;
 
@@ -16,6 +17,9 @@ public class MainWindowViewModel : ViewModelBase
     public Electrometer ElectrometerContext { get; private set; }
     public ScanParams ScanParamsContext { get; private set; }
     public Settings Configuration { get; }
+
+    public TerminalViewModel GrblTerminalContext { get; }
+    public TerminalViewModel ScpiTerminalContext { get; }
 
     public void SetScanParams(ScanParams scanParams)
     {

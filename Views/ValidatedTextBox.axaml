@@ -3,7 +3,6 @@
         xmlns:vm="using:photocon.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:ScottPlot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
         xmlns:local="using:photocon.Views"
         x:Class="photocon.Views.ValidatedTextBox">
 
