@@ -6,6 +6,8 @@ namespace photocon.ViewModels;
 
 public class TerminalViewModel : ViewModelBase
 {
+    public static int HistoryLengthLimit = 2048;
+
     public event EventHandler<string>? SendRequested;
 
     public TerminalViewModel()
@@ -28,6 +30,8 @@ public class TerminalViewModel : ViewModelBase
     public void AppendLine(string l)
     {
         _TerminalText.AppendLine(l);
+        int overflow = _TerminalText.Length - HistoryLengthLimit;
+        if (overflow > 0) _TerminalText.Remove(0, overflow);
         this.RaisePropertyChanged(nameof(TerminalText));
     }
 

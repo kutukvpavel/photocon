@@ -1,5 +1,8 @@
 using System;
+using System.Globalization;
+using System.Text;
 using photocon.Grbl;
+using SimpleTCP;
 
 namespace photocon.Models
 {
@@ -20,24 +23,28 @@ namespace photocon.Models
         public event EventHandler<float>? PositionChanged;
         public event EventHandler<MotionControlStates>? StateChanged;
 
-        public MotionControl(SocketAdapter port)
+        public MotionControl(string host, int port, int autoReportInterval)
         {
-            Port = port;
-            Port.DataReceived += Socket_DataReceived;
+            Port = new SimpleTcpClient().Connect(host, port);
+            Port.StringEncoder = Encoding.ASCII;
+            Port.Delimiter = (byte)'\n';
+            Port.DelimiterDataReceived += Socket_DataReceived;
+            Port.Write($"$Report/Interval={autoReportInterval}\n");
         }
 
         protected const int AutoReportOff = 0;
-        protected SocketAdapter Port;
         protected float LastPosition = float.NaN;
         protected States LastState = States.Unknown;
+        protected SimpleTcpClient Port;
 
-        protected void Socket_DataReceived(object? sender, string e)
+        protected void Socket_DataReceived(object? sender, Message e)
         {
-            var responseType = Parser.GetResponseType(e);
+            string s = e.MessageString;
+            var responseType = Parser.GetResponseType(s);
             switch (responseType)
             {
                 case ResponseTypes.StatusReport:
-                    ProcessStatusReport(Parser.ParseStatusReport(e));
+                    ProcessStatusReport(Parser.ParseStatusReport(s));
                     break;
                 case ResponseTypes.Alarm:
                 case ResponseTypes.Error:
@@ -45,10 +52,6 @@ namespace photocon.Models
                     break;
                 default: break;
             }
-        }
-        protected void SetAutoReport(int interval)
-        {
-            Port.Send($"$Report/Interval={interval}");
         }
         protected void ProcessStatusReport(StatusReport sr)
         {
@@ -148,5 +151,30 @@ namespace photocon.Models
         }
 
         public MotionControlStates State { get; private set; } = MotionControlStates.Unhomed;
+
+        public void ExecuteStateMachine(ScanParams p)
+        {
+            switch (State)
+            {
+                case MotionControlStates.Unhomed:
+                    Port.Write("$H\n");
+                    break;
+                case MotionControlStates.Homed:
+                    Port.Write(string.Format("G0 X{0:F2}\n", p.Start, CultureInfo.InvariantCulture));
+                    break;
+                case MotionControlStates.WaitingAtStart:
+                    Port.Write(string.Format("G1 X{0:F2} F{1:F4}\n", p.End, p.Speed, CultureInfo.InvariantCulture));
+                    break;
+                case MotionControlStates.End:
+                    Port.Write(string.Format("G0 X{0:F2}\n", p.Start, CultureInfo.InvariantCulture));
+                    break;
+                default: break;
+            }
+        }
+
+        public void Close()
+        {
+            Port.Disconnect();
+        }
     }
 }

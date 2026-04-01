@@ -36,7 +36,7 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(Configuration),
+                DataContext = new MainWindowViewModel(Configuration)
             };
             desktop.Exit += OnExit;
         }
