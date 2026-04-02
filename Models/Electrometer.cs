@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ScpiNet;
+using YamlDotNet.Core.Tokens;
 
 namespace photocon.Models
 {
@@ -52,9 +53,10 @@ namespace photocon.Models
 
         protected async Task Poll()
         {
+            var token = Cancellation.Token;
             try
             {
-                while (!Cancellation.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
                     string s = await QueryWithTerminal(":READ?");
                     ResultReceived?.Invoke(this, new TimestampedResult(ConvertReading(s)));
@@ -82,20 +84,26 @@ namespace photocon.Models
 
         protected Task? PollingTask;
 
-        public CancellationTokenSource Cancellation { get; } = new();
+        public CancellationTokenSource Cancellation { get; private set; } = new();
         public int PollIntervalMs { get; set; } = 1000;
+        public bool IsPolling { get; private set; } = false;
 
         public void StartPoll()
         {
+            if (IsPolling) return;
             PollingTask = Task.Run(Poll);
+            IsPolling = true;
         }
         public async Task StopPoll()
         {
+            if (!IsPolling) return;
             Cancellation.Cancel();
             while ((PollingTask?.Status ?? TaskStatus.RanToCompletion) == TaskStatus.Running)
             {
                 await Task.Delay(50);
             }
+            Cancellation = new CancellationTokenSource();
+            IsPolling = false;
         }
         public async Task SendManualCommand(string cmd)
         {

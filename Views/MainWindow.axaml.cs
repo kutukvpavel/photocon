@@ -141,6 +141,10 @@ public partial class MainWindow : Window
         SetLastUsedFolder(LastUsedFolderType.SaveSpectrum, file);
         await ViewModel.SaveSpectrum(Uri.UnescapeDataString(file.Path.AbsolutePath));
     }
+    public async void Abort_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null) await ViewModel.Abort();
+    }
 
     private static readonly FilePickerFileType[] FileTypeFilter = new FilePickerFileType[] { 
         new("yaml") { Patterns = new string[] { "*.yaml" } } 

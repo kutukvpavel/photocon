@@ -1,6 +1,8 @@
 using System;
 using System.Globalization;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using photocon.Grbl;
 using SimpleTCP;
 
@@ -24,9 +26,24 @@ namespace photocon.Models
         public event EventHandler<MotionControlStates>? StateChanged;
         public event EventHandler<string>? TerminalLineReceived;
 
-        public MotionControl(string host, int port, int autoReportInterval)
+        public static async Task<MotionControl?> Create(string host, int port, int autoReportInterval, int timeout = 2000)
         {
-            Port = new SimpleTcpClient().Connect(host, port);
+            var cancel = new CancellationTokenSource();
+            try
+            {
+                cancel.CancelAfter(timeout);
+                var client = await new SimpleTcpClient().Connect(host, port, cancel.Token);
+                return new MotionControl(client, autoReportInterval);
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+        }
+
+        protected MotionControl(SimpleTcpClient port, int autoReportInterval)
+        {
+            Port = port;
             Port.StringEncoder = Encoding.ASCII;
             Port.Delimiter = (byte)'\n';
             Port.DelimiterDataReceived += Socket_DataReceived;
@@ -37,6 +54,7 @@ namespace photocon.Models
         protected float LastPosition = float.NaN;
         protected States LastState = States.Unknown;
         protected SimpleTcpClient Port;
+        protected CancellationTokenSource Cancellation = new();
 
         protected void Socket_DataReceived(object? sender, Message e)
         {
@@ -193,6 +211,12 @@ namespace photocon.Models
         public void SendManualCommand(string cmd)
         {
             WriteWithTerminal(cmd);
+        }
+        public void AbortMotion()
+        {
+            WriteWithTerminal("!");
+            State = MotionControlStates.Malfunction;
+            StateChanged?.Invoke(this, State);
         }
     }
 }

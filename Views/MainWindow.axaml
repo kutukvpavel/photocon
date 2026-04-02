@@ -67,6 +67,8 @@
             <TextBlock Text="{Binding StateString}"/>
             <Button Content="{Binding NextStateString}" IsEnabled="{Binding CanAdvanceStateMachine}" Click="AdvanceStateMachine_Click"/>
             <Button IsEnabled="{Binding CanForceSkipState}">Skip</Button>
+            <ProgressBar IsVisible="{Binding IsBusy}" Width="50" IsIndeterminate="True"/>
+            <Button IsEnabled="{Binding CanAbort}">Abort</Button>
         </StackPanel>
         <local:SpectrumPlot Grid.Column="1" Grid.Row="3" DataContext="{Binding SpectrumData}"/>
     </Grid>

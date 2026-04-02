@@ -84,6 +84,8 @@ public class MainWindowViewModel : ViewModelBase
     public bool CanSaveSpectrum =>
         _InternalUiState == UiStates.Finished || (_InternalState == MotionControlStates.Malfunction && !SpectrumData.IsEmpty);
     public bool CanEditParameters => _InternalUiState != UiStates.AcqiringSpectrum;
+    public bool IsBusy { get; private set; } = false;
+    public bool CanAbort => IsConnected && IsBusy; 
 
     public void SetScanParams(ScanParams scanParams)
     {
@@ -99,33 +101,46 @@ public class MainWindowViewModel : ViewModelBase
             case UiStates.NotConnected:
             {
                 if (_InternalUiState != UiStates.NotConnected) return;
+                IsBusy = true;
+                this.RaisePropertyChanged(nameof(IsBusy));
+                bool success = false;
                 try
                 {
-                    try
-                    {
-                        MotionControlContext = new MotionControl(Configuration.FluidNcIp, Configuration.FluidNcPort, Configuration.FluidNcAutoReportIntervalMs);
-                        MotionControlContext.PositionChanged += OnPositionChanged;
-                        MotionControlContext.StateChanged += OnStateChanged;
-                        MotionControlContext.TerminalLineReceived += OnMotionTerminal;
-                    }
-                    catch (Exception ex)
-                    {
-                        Program.LogException(ex, "Failed to connect to motion control");
-                        return;
-                    }
-                    ElectrometerContext = await Electrometer.Create(Configuration.ElectrometerIp, Configuration.ElectrometerPort);
-                    ElectrometerContext.PollIntervalMs = Configuration.ElectrometerPollIntervalMs;
-                    ElectrometerContext.ResultReceived += OnReadingReceived;
-                    ElectrometerContext.TerminalLineReceived += OnElectrometerTerminal; 
+                    MotionControlContext = await MotionControl.Create(Configuration.FluidNcIp, Configuration.FluidNcPort, Configuration.FluidNcAutoReportIntervalMs);
+                    if (MotionControlContext == null) throw new TimeoutException();
+                    MotionControlContext.PositionChanged += OnPositionChanged;
+                    MotionControlContext.StateChanged += OnStateChanged;
+                    MotionControlContext.TerminalLineReceived += OnMotionTerminal;
+                    success = true;
                 }
                 catch (Exception ex)
                 {
-                    Program.LogException(ex, "Failed to connect to electrometer");
-                    return;
+                    Program.LogException(ex, "Failed to connect to motion control");
                 }
-                _InternalUiState = UiStates.Ready;
-                OnStateChanged(this, MotionControlStates.Unhomed);
-                this.RaisePropertyChanged(nameof(IsConnected));
+                if (success)
+                {
+                    success = false;
+                    try
+                    {
+
+                        ElectrometerContext = await Electrometer.Create(Configuration.ElectrometerIp, Configuration.ElectrometerPort);
+                        ElectrometerContext.PollIntervalMs = Configuration.ElectrometerPollIntervalMs;
+                        ElectrometerContext.ResultReceived += OnReadingReceived;
+                        ElectrometerContext.TerminalLineReceived += OnElectrometerTerminal;
+                        success = true; 
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.LogException(ex, "Failed to connect to electrometer");
+                    }
+                }
+                if (success)
+                {
+                    _InternalUiState = UiStates.Ready;
+                    OnStateChanged(this, MotionControlStates.Unhomed);
+                    this.RaisePropertyChanged(nameof(IsConnected));
+                }
+                IsBusy = false;
                 break;
             }
             case UiStates.Finished:
@@ -141,6 +156,7 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     await Logger.CreateNewBackupFile();
                     SpectrumData.SetAcquisitionParameters(ScanParamsContext);
+                    IsBusy = true;
                     ElectrometerContext!.StartPoll();
                     _InternalUiState = UiStates.AcqiringSpectrum;
                 }
@@ -168,6 +184,11 @@ public class MainWindowViewModel : ViewModelBase
             await SaveSpectrumInternal(path);
         }
     }
+    public async Task Abort()
+    {
+        MotionControlContext?.AbortMotion();
+        if (ElectrometerContext != null) await ElectrometerContext.StopPoll();
+    }
 
     protected async Task SaveSpectrumInternal(string path)
     {
@@ -181,6 +202,8 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(CanForceSkipState));
         this.RaisePropertyChanged(nameof(CanSaveSpectrum));
         this.RaisePropertyChanged(nameof(CanEditParameters));
+        this.RaisePropertyChanged(nameof(IsBusy));
+        this.RaisePropertyChanged(nameof(CanAbort));
     }
     protected void OnPositionChanged(object? sender, TimestampedResult p)
     {
@@ -199,6 +222,11 @@ public class MainWindowViewModel : ViewModelBase
             if (ElectrometerContext != null) await ElectrometerContext.StopPoll();
             _InternalUiState = UiStates.Ready;
         }
+        IsBusy = s switch
+        {
+            MotionControlStates.Homing or MotionControlStates.MovingToStart or MotionControlStates.MovingToEnd => true,
+            _ => false
+        };
         UpdateUiStates();
     }
     protected void OnReadingReceived(object? sender, TimestampedResult r)
