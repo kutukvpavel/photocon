@@ -45,6 +45,10 @@ namespace photocon
             using TextWriter tw = new StreamWriter(path);
             using CsvWriter cw = new(tw, CultureInfo.InvariantCulture);
             await cw.NextRecordAsync();
+            cw.WriteField(
+                $"Acquisition params: Start = {s.AcquisitionParameters.Start} nm, End = {s.AcquisitionParameters.End} nm, Speed = {s.AcquisitionParameters.Speed} nm/min"
+                );
+            await cw.NextRecordAsync();
             cw.WriteField("Wavelength (nm)");
             cw.WriteField("Conductance");
             cw.WriteField("Time");

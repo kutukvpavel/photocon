@@ -23,7 +23,9 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(Settings cfg)
     {
         Configuration = cfg;
+        ScanParamsContext.BacklashCorrection = Configuration.BacklashCompensationNm;
         Logger = new(Environment.CurrentDirectory);
+        SpectrumData = new(ScanParamsContext);
         GrblTerminalContext.SendRequested += OnGrblManualSendRequsted;
         ScpiTerminalContext.SendRequested += OnScpiManualSendRequuested;
     }
@@ -37,7 +39,7 @@ public class MainWindowViewModel : ViewModelBase
     public TerminalViewModel GrblTerminalContext { get; } = new();
     public TerminalViewModel ScpiTerminalContext { get; } = new();
     public bool IsConnected => _InternalUiState != UiStates.NotConnected;
-    public Spectrum SpectrumData { get; } = new();
+    public Spectrum SpectrumData { get; }
     public string StateString
     {
         get
@@ -86,6 +88,7 @@ public class MainWindowViewModel : ViewModelBase
     public void SetScanParams(ScanParams scanParams)
     {
         ScanParamsContext = scanParams;
+        ScanParamsContext.BacklashCorrection = Configuration.BacklashCompensationNm;
         this.RaisePropertyChanged(nameof(ScanParamsContext));
     }
     public async Task AdvanceStateMachine(string? arg = null)
@@ -137,6 +140,7 @@ public class MainWindowViewModel : ViewModelBase
                 if (_InternalUiState == UiStates.Ready && _InternalState == MotionControlStates.WaitingAtStart)
                 {
                     await Logger.CreateNewBackupFile();
+                    SpectrumData.SetAcquisitionParameters(ScanParamsContext);
                     ElectrometerContext!.StartPoll();
                     _InternalUiState = UiStates.AcqiringSpectrum;
                 }
