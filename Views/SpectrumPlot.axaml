@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="using:photocon.Models"
+        xmlns:vm="using:photocon.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:photocon.Views"
+        xmlns:app="using:photocon"
+        xmlns:plot="using:ScottPlot.Avalonia"
+        x:Class="photocon.Views.SpectrumPlot"
+        x:DataType="m:Spectrum">
+
+        <plot:AvaPlot x:Name="Plot1"/>
+
+</UserControl>

@@ -10,7 +10,7 @@ namespace photocon.Models
             Result = result;
         }
 
-        DateTime Timestamp;
-        double Result;
+        public DateTime Timestamp;
+        public double Result;
     }
 }

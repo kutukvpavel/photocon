@@ -8,7 +8,7 @@
         x:Class="photocon.Views.AboutBox"
         x:DataType="vm:AboutBoxViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="About">
+        Title="About" SizeToContent="WidthAndHeight">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,

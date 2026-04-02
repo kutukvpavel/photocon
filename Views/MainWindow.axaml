@@ -8,7 +8,7 @@
         x:Class="photocon.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="photocon">
+        Title="photocon" x:Name="wndMain">
 
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -29,8 +29,19 @@
     </Window.Styles>
 
     <Grid ColumnDefinitions="*,4*" RowDefinitions="auto,auto,auto,*">
-        <Expander Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" ExpandDirection="Right" VerticalAlignment="Stretch" Header="Terminal" Margin="3">
-            <TabControl>
+        <Menu Grid.ColumnSpan="2" Grid.Row="0">
+            <MenuItem Header="Parameters">
+                <MenuItem Header="Load scan parameters" Click="LoadMenuItem_Click"/>
+                <MenuItem Header="Save scan parameters" Click="SaveMenuItem_Click" IsEnabled="{Binding CanEditParameters}"/>
+            </MenuItem>
+            <MenuItem Header="Spectrum">
+                <MenuItem Header="Save Spectrum" Click="SaveSpectrum_Click" IsEnabled="{Binding CanSaveSpectrum}"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+            <TabControl Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsConnected}">
                 <TabControl.Items>
                     <TabItem Header="FluidNC">
                         <local:Terminal DataContext="{Binding GrblTerminalContext}"/>
@@ -40,19 +51,15 @@
                     </TabItem>
                 </TabControl.Items>
             </TabControl>
-        </Expander> 
-        <Menu Grid.ColumnSpan="2" Grid.Row="0">
-            <MenuItem Header="File">
-                <MenuItem Header="Load scan parameters" Click="LoadMenuItem_Click"/>
-                <MenuItem Header="Save scan parameters" Click="SaveMenuItem_Click"/>
-            </MenuItem>
-            <MenuItem Header="Help">
-                <MenuItem Header="About" Click="AboutMenuItem_Click"/>
-            </MenuItem>
-        </Menu>
         <Expander Grid.Column="1" Grid.Row="1" ExpandDirection="Down" HorizontalAlignment="Stretch" Header="Scan Parameters" Margin="3">
-            <local:ScanParamsEditor Grid.Column="0" Grid.Row="1" DataContext="{Binding ScanParamsContext}" />
+            <local:ScanParamsEditor Grid.Column="0" Grid.Row="1" DataContext="{Binding ScanParamsContext}" IsEnabled="{Binding #wndMain.DataContext.CanEditParameters}"/>
         </Expander>
+        <Grid Grid.Column="1" Grid.Row="2" ColumnDefinitions="*,*,auto" RowDefinitions="auto">
+            <TextBlock Grid.Column="0" Text="{Binding StateString}"/>
+            <Button Grid.Column="1" Content="{Binding NextStateString}" IsEnabled="{Binding CanAdvanceStateMachine}" Click="AdvanceStateMachine_Click"/>
+            <Button Grid.Column="2" IsEnabled="{Binding CanForceSkipState}">Skip</Button>
+        </Grid>
+        <local:SpectrumPlot Grid.Column="1" Grid.Row="3" DataContext="{Binding SpectrumData}"/>
     </Grid>
 
 </Window>

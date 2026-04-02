@@ -1,0 +1,10 @@
+SaveLocation: 
+LoadLocation: 
+SpectrumSaveLocation: 
+ElectrometerIp: 192.168.1.200
+ElectrometerPort: 3000
+FluidNcIp: 192.168.1.200
+FluidNcPort: 2000
+BacklashCompensationNm: 0.1
+FluidNcAutoReportIntervalMs: 150
+ElectrometerPollIntervalMs: 1000

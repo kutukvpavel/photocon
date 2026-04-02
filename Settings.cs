@@ -9,6 +9,7 @@ public class Settings
 
     public string? SaveLocation { get; set; }
     public string? LoadLocation { get; set; }
+    public string? SpectrumSaveLocation { get; set; }
     public string ElectrometerIp { get; set; } = "192.168.1.200";
     public int ElectrometerPort { get; set; } = 3000;
     public string FluidNcIp { get; set; } = "192.168.1.200";

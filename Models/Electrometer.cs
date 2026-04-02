@@ -12,7 +12,7 @@ namespace photocon.Models
         public static async Task<Electrometer> Create(IScpiConnection connection, ILogger<ScpiDevice>? logger = null, CancellationToken cancellationToken = default)
 		{
 			// Try to open the connection:
-			logger?.LogInformation($"Opening USB connection for device {connection.DevicePath}...");
+			logger?.LogInformation($"Opening TCP connection for device {connection.DevicePath}...");
 			await connection.Open(cancellationToken);
 
 			// Get device ID:
@@ -31,11 +31,23 @@ namespace photocon.Models
         }
 
         public event EventHandler<TimestampedResult>? ResultReceived;
+        public event EventHandler<string>? TerminalLineReceived;
         
         protected Electrometer(IScpiConnection connection, string id, ILogger<ScpiDevice>? logger)
             : base(connection, id, logger)
         {
             
+        }
+
+        protected async Task<string> QueryWithTerminal(string cmd)
+        {
+            TerminalLineReceived?.Invoke(this, cmd);
+            return await Query(cmd, Cancellation.Token);
+        }
+        protected async Task SendWithTerminal(string cmd)
+        {
+            TerminalLineReceived?.Invoke(this, cmd);
+            await SendCmd(cmd);
         }
 
         protected async Task Poll()
@@ -44,7 +56,7 @@ namespace photocon.Models
             {
                 while (!Cancellation.IsCancellationRequested)
                 {
-                    string s = await Query(":READ?", Cancellation.Token);
+                    string s = await QueryWithTerminal(":READ?");
                     ResultReceived?.Invoke(this, new TimestampedResult(ConvertReading(s)));
                     await Task.Delay(PollIntervalMs);
                 }
@@ -83,6 +95,17 @@ namespace photocon.Models
             while ((PollingTask?.Status ?? TaskStatus.RanToCompletion) == TaskStatus.Running)
             {
                 await Task.Delay(50);
+            }
+        }
+        public async Task SendManualCommand(string cmd)
+        {
+            if (cmd.EndsWith('?'))
+            {
+                await QueryWithTerminal(cmd);
+            }
+            else
+            {
+                await SendWithTerminal(cmd);
             }
         }
     }

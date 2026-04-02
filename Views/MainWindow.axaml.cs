@@ -14,8 +14,9 @@ public partial class MainWindow : Window
 {
     private enum LastUsedFolderType
     {
-        Load,
-        Save
+        LoadParams,
+        SaveParams,
+        SaveSpectrum
     }
 
     public MainWindow()
@@ -38,8 +39,9 @@ public partial class MainWindow : Window
         string? initialPath = null;
         initialPath = t switch
         {
-            LastUsedFolderType.Load => ViewModel.Configuration.LoadLocation,
-            LastUsedFolderType.Save => ViewModel.Configuration.SaveLocation,
+            LastUsedFolderType.LoadParams => ViewModel.Configuration.LoadLocation,
+            LastUsedFolderType.SaveParams => ViewModel.Configuration.SaveLocation,
+            LastUsedFolderType.SaveSpectrum => ViewModel.Configuration.SpectrumSaveLocation,
             _ => throw new ArgumentException(),
         };
         IStorageFolder? initialFolder;
@@ -55,11 +57,14 @@ public partial class MainWindow : Window
         string? path = Path.GetDirectoryName(Uri.UnescapeDataString(fileInFolder.Path.AbsolutePath));
         switch (t)
         {
-            case LastUsedFolderType.Load:
+            case LastUsedFolderType.LoadParams:
                 ViewModel.Configuration.LoadLocation = path;
                 break;
-            case LastUsedFolderType.Save:
+            case LastUsedFolderType.SaveParams:
                 ViewModel.Configuration.SaveLocation = path;
+                break;
+            case LastUsedFolderType.SaveSpectrum:
+                ViewModel.Configuration.SpectrumSaveLocation = path;
                 break;
             default: throw new ArgumentException();
         }
@@ -71,13 +76,13 @@ public partial class MainWindow : Window
 
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions() {
             AllowMultiple = false,
-            SuggestedStartLocation = await TryGetLastUsedFolder(LastUsedFolderType.Load),
+            SuggestedStartLocation = await TryGetLastUsedFolder(LastUsedFolderType.LoadParams),
             FileTypeFilter = FileTypeFilter,
             Title = "Select file..."
         });
         if ((files?.Count ?? 0) == 0) return;
         var file = files[0];
-        SetLastUsedFolder(LastUsedFolderType.Load, file);
+        SetLastUsedFolder(LastUsedFolderType.LoadParams, file);
 
         string yaml = await File.ReadAllTextAsync(Uri.UnescapeDataString(file.Path.AbsolutePath));
         try
@@ -97,11 +102,11 @@ public partial class MainWindow : Window
 
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions() {
             DefaultExtension = "yaml",
-            SuggestedStartLocation = await TryGetLastUsedFolder(LastUsedFolderType.Save),
+            SuggestedStartLocation = await TryGetLastUsedFolder(LastUsedFolderType.SaveParams),
             Title = "Select save location..."
         });
         if (file == null) return;
-        SetLastUsedFolder(LastUsedFolderType.Save, file);
+        SetLastUsedFolder(LastUsedFolderType.SaveParams, file);
 
         try
         {
@@ -118,6 +123,23 @@ public partial class MainWindow : Window
     {
         var aboutBox = new AboutBox() { DataContext = new AboutBoxViewModel() };
         await aboutBox.ShowDialog(this);
+    }
+    public async void AdvanceStateMachine_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null) return;
+        await ViewModel.AdvanceStateMachine();
+    }
+    public async void SaveSpectrum_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel == null) throw new NullReferenceException();
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions() {
+            DefaultExtension = "csv",
+            SuggestedStartLocation = await TryGetLastUsedFolder(LastUsedFolderType.SaveSpectrum),
+            Title = "Select save location..."
+        });
+        if (file == null) return;
+        SetLastUsedFolder(LastUsedFolderType.SaveSpectrum, file);
+        await ViewModel.SaveSpectrum(Uri.UnescapeDataString(file.Path.AbsolutePath));
     }
 
     private static readonly FilePickerFileType[] FileTypeFilter = new FilePickerFileType[] { 

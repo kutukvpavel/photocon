@@ -20,8 +20,9 @@ namespace photocon.Models
 
     public class MotionControl
     {
-        public event EventHandler<float>? PositionChanged;
+        public event EventHandler<TimestampedResult>? PositionChanged;
         public event EventHandler<MotionControlStates>? StateChanged;
+        public event EventHandler<string>? TerminalLineReceived;
 
         public MotionControl(string host, int port, int autoReportInterval)
         {
@@ -29,7 +30,7 @@ namespace photocon.Models
             Port.StringEncoder = Encoding.ASCII;
             Port.Delimiter = (byte)'\n';
             Port.DelimiterDataReceived += Socket_DataReceived;
-            Port.Write($"$Report/Interval={autoReportInterval}\n");
+            WriteWithTerminal($"$Report/Interval={autoReportInterval}");
         }
 
         protected const int AutoReportOff = 0;
@@ -40,6 +41,7 @@ namespace photocon.Models
         protected void Socket_DataReceived(object? sender, Message e)
         {
             string s = e.MessageString;
+            TerminalLineReceived?.Invoke(this, s);
             var responseType = Parser.GetResponseType(s);
             switch (responseType)
             {
@@ -146,8 +148,14 @@ namespace photocon.Models
             if (sr.Position != LastPosition)
             {
                 LastPosition = sr.Position;
-                PositionChanged?.Invoke(this, LastPosition);
+                PositionChanged?.Invoke(this, new TimestampedResult(LastPosition));
             }
+        }
+        protected void WriteWithTerminal(string cmd)
+        {
+            cmd = $"{cmd}\n";
+            TerminalLineReceived?.Invoke(this, cmd);
+            Port.Write(cmd);
         }
 
         public MotionControlStates State { get; private set; } = MotionControlStates.Unhomed;
@@ -157,24 +165,34 @@ namespace photocon.Models
             switch (State)
             {
                 case MotionControlStates.Unhomed:
-                    Port.Write("$H\n");
+                    WriteWithTerminal("$H");
                     break;
                 case MotionControlStates.Homed:
-                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}\n", p.Start));
+                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
                     break;
                 case MotionControlStates.WaitingAtStart:
-                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}\n", p.End, p.Speed));
+                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}", p.End, p.Speed));
                     break;
                 case MotionControlStates.End:
-                    Port.Write(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}\n", p.Start));
+                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
+                    break;
+                case MotionControlStates.Malfunction:
+                    State = MotionControlStates.Unhomed; //Reset any error, expect manual handling of this situation
                     break;
                 default: break;
             }
         }
-
+        public void ForceSkipHoming()
+        {
+            if (State == MotionControlStates.Unhomed) State = MotionControlStates.Homed;
+        }
         public void Close()
         {
             Port.Disconnect();
+        }
+        public void SendManualCommand(string cmd)
+        {
+            WriteWithTerminal(cmd);
         }
     }
 }
