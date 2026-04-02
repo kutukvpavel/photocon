@@ -16,7 +16,6 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextAlignment" Value="Center" />
             <Setter Property="Margin" Value="5,0,2,0" />
-            <Setter Property="FontSize" Value="18"/>
         </Style>
     </UserControl.Styles>
 

@@ -28,20 +28,23 @@
         </Style>
         <Style Selector="Button">
             <Setter Property="Margin" Value="6,3"/>
+            <Setter Property="FontSize" Value="16"/>
         </Style>
         <Style Selector="CheckBox">
             <Setter Property="Margin" Value="18,0,6,0"/>
+            <Setter Property="FontSize" Value="16"/>
         </Style>
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
         </Style>
     </Window.Styles>
 
-    <Grid ColumnDefinitions="auto,4*" RowDefinitions="auto,auto,auto,*">
-        <Menu Grid.ColumnSpan="2" Grid.Row="0">
+    <Grid ColumnDefinitions="auto,*,*" RowDefinitions="auto,auto,auto,*">
+        <Menu Grid.ColumnSpan="3" Grid.Row="0">
             <MenuItem Header="Parameters">
-                <MenuItem Header="Load scan parameters" Click="LoadMenuItem_Click"/>
-                <MenuItem Header="Save scan parameters" Click="SaveMenuItem_Click" IsEnabled="{Binding CanEditParameters}"/>
+                <MenuItem Header="Load scan parameters" Click="LoadMenuItem_Click" IsEnabled="{Binding CanEditParameters}"/>
+                <MenuItem Header="Save scan parameters" Click="SaveMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Spectrum">
                 <MenuItem Header="Save Spectrum" Click="SaveSpectrum_Click" IsEnabled="{Binding CanSaveSpectrum}"/>
@@ -50,7 +53,7 @@
                 <MenuItem Header="About" Click="AboutMenuItem_Click"/>
             </MenuItem>
         </Menu>
-            <TabControl Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsConnected}" MinWidth="40">
+            <TabControl Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsConnected}" MinWidth="40">
                 <TabControl.Items>
                     <TabItem Header="FluidNC">
                         <local:Terminal DataContext="{Binding GrblTerminalContext}"/>
@@ -60,17 +63,22 @@
                     </TabItem>
                 </TabControl.Items>
             </TabControl>
-        <Expander Grid.Column="1" Grid.Row="1" ExpandDirection="Down" HorizontalAlignment="Stretch" Header="Scan Parameters" Margin="3" IsExpanded="True">
+        <Expander Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" ExpandDirection="Down" HorizontalAlignment="Stretch"
+            Header="Scan Parameters" Margin="3,1" IsExpanded="True">
             <local:ScanParamsEditor Grid.Column="0" Grid.Row="1" DataContext="{Binding ScanParamsContext}" IsEnabled="{Binding #wndMain.DataContext.CanEditParameters}"/>
         </Expander>
-        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight">
-            <TextBlock Text="{Binding StateString}"/>
+        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,3">
+            <TextBlock Text="Status: "/>
+            <TextBlock Text="{Binding StateString}" Margin="3,0,12,0"/>
+            <ProgressBar IsVisible="{Binding IsBusy}" Width="50" IsIndeterminate="True"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Right" Margin="6,3">
+            <TextBlock Text="Actions: "/>
             <Button Content="{Binding NextStateString}" IsEnabled="{Binding CanAdvanceStateMachine}" Click="AdvanceStateMachine_Click"/>
             <Button IsEnabled="{Binding CanForceSkipState}">Skip</Button>
-            <ProgressBar IsVisible="{Binding IsBusy}" Width="50" IsIndeterminate="True"/>
             <Button IsEnabled="{Binding CanAbort}">Abort</Button>
         </StackPanel>
-        <local:SpectrumPlot Grid.Column="1" Grid.Row="3" DataContext="{Binding SpectrumData}"/>
+        <local:SpectrumPlot Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" DataContext="{Binding SpectrumData}"/>
     </Grid>
 
 </Window>

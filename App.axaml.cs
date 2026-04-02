@@ -5,11 +5,14 @@ using photocon.ViewModels;
 using photocon.Views;
 using System.IO;
 using System;
+using Avalonia.Styling;
 
 namespace photocon;
 
 public partial class App : Application
 {
+    public static bool IsDarkThemed => (string?)(Current?.ActualThemeVariant.Key) == (string)ThemeVariant.Dark.Key;
+    
     public Settings Configuration { get; private set; } = new();
 
     public override void Initialize()

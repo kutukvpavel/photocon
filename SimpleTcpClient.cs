@@ -204,43 +204,43 @@ namespace photocon
 			}
 		}
 
-		public void Write(byte[] data)
+		public async Task Write(byte[] data)
 		{
 			if (_client == null) { throw new Exception("Cannot send data to a null TcpClient (check to see if Connect was called)"); }
-			_client.GetStream().Write(data, 0, data.Length);
+			await _client.GetStream().WriteAsync(data, 0, data.Length);
 		}
 
-		public void Write(string data)
+		public async Task Write(string data)
 		{
 			if (data == null) { return; }
-			Write(StringEncoder.GetBytes(data));
+			await Write(StringEncoder.GetBytes(data));
 		}
 
-		public void WriteLine(string data)
+		public async Task WriteLine(string data)
 		{
 			if (string.IsNullOrEmpty(data)) { return; }
 			if (data.LastOrDefault() != Delimiter)
 			{
-				Write(data + StringEncoder.GetString(new byte[] { Delimiter }));
+				await Write(data + StringEncoder.GetString(new byte[] { Delimiter }));
 			}
 			else
 			{
-				Write(data);
+				await Write(data);
 			}
 		}
 
-		public Message? WriteLineAndGetReply(string data, TimeSpan timeout)
+		public async Task<Message?> WriteLineAndGetReply(string data, TimeSpan timeout)
 		{
 			Message? mReply = null;
 			this.DataReceived += (s, e) => { mReply = e; };
-			WriteLine(data);
+			await WriteLine(data);
 
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
 			while (mReply == null && sw.Elapsed < timeout)
 			{
-				System.Threading.Thread.Sleep(10);
+				await Task.Delay(10);
 			}
 
 			return mReply;

@@ -12,7 +12,7 @@
 
         <Grid RowDefinitions="*,auto,auto">
                 <plot:AvaPlot x:Name="Plot1"/>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="LeftToRight">
+                <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,1">
                         <TextBlock Text="Show plots: "/>
                         <CheckBox IsCheckedChanged="OnActivePlotsChanged" 
                                 IsChecked="{Binding EnablePositionalDomain, Mode=TwoWay}">Conductance vs Wavelength</CheckBox>
@@ -21,7 +21,7 @@
                         <CheckBox IsCheckedChanged="OnActivePlotsChanged"
                                 IsChecked="{Binding EnableTimeDiscrepancy, Mode=TwoWay}">Time Discrepancy vs Time</CheckBox>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,1">
                         <TextBlock Text="Plot options: "/>
                         <CheckBox x:Name="chkAutoscaleY">Autoscale Y</CheckBox>
                         <CheckBox x:Name="chkAutoscaleX">Autoscale X</CheckBox>

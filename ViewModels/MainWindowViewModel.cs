@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using ReactiveUI;
 using photocon.Models;
-using System.IO;
 
 namespace photocon.ViewModels;
 
@@ -85,7 +84,8 @@ public class MainWindowViewModel : ViewModelBase
         _InternalUiState == UiStates.Finished || (_InternalState == MotionControlStates.Malfunction && !SpectrumData.IsEmpty);
     public bool CanEditParameters => _InternalUiState != UiStates.AcqiringSpectrum;
     public bool IsBusy { get; private set; } = false;
-    public bool CanAbort => IsConnected && IsBusy; 
+    public bool CanAbort => IsConnected && IsBusy;
+    public object BusyStateLock { get; } = new();
 
     public void SetScanParams(ScanParams scanParams)
     {
@@ -152,15 +152,18 @@ public class MainWindowViewModel : ViewModelBase
             }
             default:
             {
+                bool _busy = IsBusy;
+                IsBusy = true;
+                this.RaisePropertyChanged(nameof(IsBusy));
                 if (_InternalUiState == UiStates.Ready && _InternalState == MotionControlStates.WaitingAtStart)
                 {
                     await Logger.CreateNewBackupFile();
                     SpectrumData.SetAcquisitionParameters(ScanParamsContext);
-                    IsBusy = true;
                     ElectrometerContext!.StartPoll();
                     _InternalUiState = UiStates.AcqiringSpectrum;
                 }
-                MotionControlContext!.ExecuteStateMachine(ScanParamsContext);
+                await MotionControlContext!.ExecuteStateMachine(ScanParamsContext);
+                if (_InternalUiState != UiStates.AcqiringSpectrum) IsBusy = _busy;
                 break;
             }
         }

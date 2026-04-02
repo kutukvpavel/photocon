@@ -47,7 +47,7 @@ namespace photocon.Models
             Port.StringEncoder = Encoding.ASCII;
             Port.Delimiter = (byte)'\n';
             Port.DelimiterDataReceived += Socket_DataReceived;
-            WriteWithTerminal($"$Report/Interval={autoReportInterval}");
+            WriteWithTerminal($"$Report/Interval={autoReportInterval}").Wait();
         }
 
         protected const int AutoReportOff = 0;
@@ -58,7 +58,7 @@ namespace photocon.Models
 
         protected void Socket_DataReceived(object? sender, Message e)
         {
-            string s = e.MessageString;
+            string s = e.MessageString.Trim('\r');
             TerminalLineReceived?.Invoke(this, s);
             var responseType = Parser.GetResponseType(s);
             switch (responseType)
@@ -169,30 +169,29 @@ namespace photocon.Models
                 PositionChanged?.Invoke(this, new TimestampedResult(LastPosition));
             }
         }
-        protected void WriteWithTerminal(string cmd)
+        protected async Task WriteWithTerminal(string cmd)
         {
-            cmd = $"{cmd}\n";
             TerminalLineReceived?.Invoke(this, cmd);
-            Port.Write(cmd);
+            await Port.WriteLine(cmd);
         }
 
         public MotionControlStates State { get; private set; } = MotionControlStates.Unhomed;
 
-        public void ExecuteStateMachine(ScanParams p)
+        public async Task ExecuteStateMachine(ScanParams p)
         {
             switch (State)
             {
                 case MotionControlStates.Unhomed:
-                    WriteWithTerminal("$H");
+                    await WriteWithTerminal("$H");
                     break;
                 case MotionControlStates.Homed:
-                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
+                    await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
                     break;
                 case MotionControlStates.WaitingAtStart:
-                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}", p.End, p.Speed));
+                    await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}", p.End, p.Speed));
                     break;
                 case MotionControlStates.End:
-                    WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
+                    await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
                     break;
                 case MotionControlStates.Malfunction:
                     State = MotionControlStates.Unhomed; //Reset any error, expect manual handling of this situation
@@ -208,13 +207,13 @@ namespace photocon.Models
         {
             Port.Disconnect();
         }
-        public void SendManualCommand(string cmd)
+        public async Task SendManualCommand(string cmd)
         {
-            WriteWithTerminal(cmd);
+            await WriteWithTerminal(cmd);
         }
-        public void AbortMotion()
+        public async Task AbortMotion()
         {
-            WriteWithTerminal("!");
+            await WriteWithTerminal("!");
             State = MotionControlStates.Malfunction;
             StateChanged?.Invoke(this, State);
         }

@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:photocon.Views"
-        Width="200" Height="100"
         x:Class="photocon.Views.AboutBox"
         x:DataType="vm:AboutBoxViewModel"
         Icon="/Assets/avalonia-logo.ico"
@@ -16,6 +15,6 @@
         <vm:AboutBoxViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding CopyrightString}" />
+    <TextBlock Text="{Binding CopyrightString}" ClipToBounds="True" Margin="10"/>
 
 </Window>
