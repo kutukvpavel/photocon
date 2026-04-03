@@ -11,6 +11,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Right" />
+            <Setter Property="FontSize" Value="16"/>
         </Style>
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -19,8 +20,12 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid ColumnDefinitions="auto,*" HorizontalAlignment="Stretch">
-        <TextBlock x:Name="txtLabel"/>
-        <TextBox Grid.Column="1" x:Name="txtValue"/>
+    <Grid HorizontalAlignment="Stretch">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition SharedSizeGroup="ValidatedLabel" Width="Auto"/>
+            <ColumnDefinition SharedSizeGroup="ValidatedTb" Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="txtLabel" HorizontalAlignment="Right"/>
+        <TextBox Grid.Column="1" x:Name="txtValue" HorizontalContentAlignment="Left"/>
     </Grid> 
 </UserControl>

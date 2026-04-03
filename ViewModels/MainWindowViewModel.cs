@@ -10,6 +10,7 @@ public class MainWindowViewModel : ViewModelBase
     protected enum UiStates
     {
         NotConnected,
+        Connecting,
         Ready,
         AcqiringSpectrum,
         Finished
@@ -37,7 +38,7 @@ public class MainWindowViewModel : ViewModelBase
 
     public TerminalViewModel GrblTerminalContext { get; } = new();
     public TerminalViewModel ScpiTerminalContext { get; } = new();
-    public bool IsConnected => _InternalUiState != UiStates.NotConnected;
+    public bool IsConnected => (_InternalUiState != UiStates.NotConnected) && (_InternalUiState != UiStates.Connecting);
     public Spectrum SpectrumData { get; }
     public string StateString
     {
@@ -56,7 +57,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             return _InternalUiState switch
             {
-                UiStates.NotConnected => "Connect",
+                UiStates.NotConnected or UiStates.Connecting => "Connect",
                 UiStates.Ready or UiStates.AcqiringSpectrum => _InternalState switch
                 {
                     MotionControlStates.Unhomed => "Home",
@@ -78,14 +79,25 @@ public class MainWindowViewModel : ViewModelBase
             _ => false
         },
         _ => true
-    };
+    } && !IsBusy;
     public bool CanForceSkipState => _InternalState == MotionControlStates.Unhomed && IsConnected;
     public bool CanSaveSpectrum =>
         _InternalUiState == UiStates.Finished || (_InternalState == MotionControlStates.Malfunction && !SpectrumData.IsEmpty);
     public bool CanEditParameters => _InternalUiState != UiStates.AcqiringSpectrum;
-    public bool IsBusy { get; private set; } = false;
+    protected bool _IsBusy = false;
+    public bool IsBusy
+    { 
+        get => _IsBusy;
+        private set
+        {
+            if (_IsBusy != value)
+            _IsBusy = value;
+            this.RaisePropertyChanged(nameof(IsBusy));
+            this.RaisePropertyChanged(nameof(CanAdvanceStateMachine));
+            this.RaisePropertyChanged(nameof(CanAbort));
+        }
+    }
     public bool CanAbort => IsConnected && IsBusy;
-    public object BusyStateLock { get; } = new();
 
     public void SetScanParams(ScanParams scanParams)
     {
@@ -101,8 +113,10 @@ public class MainWindowViewModel : ViewModelBase
             case UiStates.NotConnected:
             {
                 if (_InternalUiState != UiStates.NotConnected) return;
+                _InternalUiState = UiStates.Connecting;
                 IsBusy = true;
-                this.RaisePropertyChanged(nameof(IsBusy));
+                this.RaisePropertyChanged(nameof(StateString));
+                this.RaisePropertyChanged(nameof(NextStateString));
                 bool success = false;
                 try
                 {
@@ -140,6 +154,10 @@ public class MainWindowViewModel : ViewModelBase
                     OnStateChanged(this, MotionControlStates.Unhomed);
                     this.RaisePropertyChanged(nameof(IsConnected));
                 }
+                else
+                {
+                    _InternalUiState = UiStates.NotConnected;
+                }
                 IsBusy = false;
                 break;
             }
@@ -154,7 +172,6 @@ public class MainWindowViewModel : ViewModelBase
             {
                 bool _busy = IsBusy;
                 IsBusy = true;
-                this.RaisePropertyChanged(nameof(IsBusy));
                 if (_InternalUiState == UiStates.Ready && _InternalState == MotionControlStates.WaitingAtStart)
                 {
                     await Logger.CreateNewBackupFile();

@@ -12,22 +12,22 @@
         <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="16" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Margin" Value="5,3" />
+            <Setter Property="Margin" Value="5,3,3,3" />
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
         <Style Selector="TextBox">
-            <Setter Property="Margin" Value="5,3" />
+            <Setter Property="Margin" Value="3,3,5,3" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
     </UserControl.Styles>
 
             <Grid ColumnDefinitions="auto,*" RowDefinitions="auto,auto,auto">
-                <local:ValidatedTextBox Grid.ColumnSpan="2" Grid.Row="0" Label="Scan Start (nm):"
+                <TextBlock Text="Scan Start (nm):"/><local:ValidatedTextBox Grid.Column="1" Grid.Row="0"
                     Value="{Binding Start, Mode=TwoWay}" FormatString="F0"/>
-                <local:ValidatedTextBox Grid.Row="1" Grid.ColumnSpan="2" Label="Scan End (nm):"
+                <TextBlock Grid.Row="1" Text="Scan End (nm):"/><local:ValidatedTextBox Grid.Row="1" Grid.Column="1"
                     Value="{Binding End, Mode=TwoWay}" FormatString="F0"/>
-                <local:ValidatedTextBox Grid.Row="2" Grid.ColumnSpan="2" Label="Speed (nm/min):"
+                <TextBlock Grid.Row="2" Text="Speed (nm/min):"/><local:ValidatedTextBox Grid.Row="2" Grid.Column="1"
                     Value="{Binding Speed, Mode=TwoWay}" FormatString="F1"/>
             </Grid>
 

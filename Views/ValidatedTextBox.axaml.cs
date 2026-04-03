@@ -12,6 +12,7 @@ public partial class ValidatedTextBox : UserControl
     public static readonly StyledProperty<double> ValueProperty = AvaloniaProperty.Register<ValidatedTextBox, double>(nameof(Value), 0);
     public static readonly StyledProperty<string> FormatStringProperty = 
         AvaloniaProperty.Register<ValidatedTextBox, string>(nameof(FormatString), "F3");
+    public static readonly StyledProperty<bool> ShowLabelProperty = AvaloniaProperty.Register<ValidatedTextBox, bool>(nameof(ShowLabel), false);
     public static NumberStyles NumberStyle { get; set; } = NumberStyles.Float;
 
     public ValidatedTextBox()
@@ -19,6 +20,7 @@ public partial class ValidatedTextBox : UserControl
         InitializeComponent();
 
         txtLabel.Bind(TextBlock.TextProperty, this.GetObservable(LabelProperty));
+        txtLabel.Bind(TextBlock.IsVisibleProperty, this.GetObservable(ShowLabelProperty));
         this.GetObservable(ValueProperty).Subscribe((v) => txtValue.Text = v.ToString(FormatString));
         txtValue.TextChanged += txtValue_TextChanged;
         txtValue.LostFocus += (o, e) => AssignTemporaryValue();
@@ -28,7 +30,11 @@ public partial class ValidatedTextBox : UserControl
     public string Label
     {
         get => GetValue(LabelProperty);
-        set => SetValue(LabelProperty, value);
+        set 
+        {
+            SetValue(LabelProperty, value);
+            SetValue(ShowLabelProperty, value.Length > 0);
+        }
     }
     public double Value
     {
@@ -39,6 +45,11 @@ public partial class ValidatedTextBox : UserControl
     {
         get => GetValue(FormatStringProperty);
         set => SetValue(FormatStringProperty, value);
+    }
+    public bool ShowLabel
+    {
+        get => GetValue(ShowLabelProperty);
+        set => SetValue(ShowLabelProperty, value);
     }
 
     private double? TemporaryValue;

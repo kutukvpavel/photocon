@@ -67,12 +67,12 @@
             Header="Scan Parameters" Margin="3,1" IsExpanded="True">
             <local:ScanParamsEditor Grid.Column="0" Grid.Row="1" DataContext="{Binding ScanParamsContext}" IsEnabled="{Binding #wndMain.DataContext.CanEditParameters}"/>
         </Expander>
-        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,3">
+        <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="12,3">
             <TextBlock Text="Status: "/>
             <TextBlock Text="{Binding StateString}" Margin="3,0,12,0"/>
             <ProgressBar IsVisible="{Binding IsBusy}" Width="50" IsIndeterminate="True"/>
         </StackPanel>
-        <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Right" Margin="6,3">
+        <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Right" Margin="10,3">
             <TextBlock Text="Actions: "/>
             <Button Content="{Binding NextStateString}" IsEnabled="{Binding CanAdvanceStateMachine}" Click="AdvanceStateMachine_Click"/>
             <Button IsEnabled="{Binding CanForceSkipState}">Skip</Button>
