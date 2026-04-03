@@ -6,7 +6,7 @@ namespace photocon.ViewModels;
 
 public class TerminalViewModel : ViewModelBase
 {
-    public static int HistoryLengthLimit = 2048;
+    public static int HistoryLengthLimit { get; set; } = 2048;
 
     public event EventHandler<string>? SendRequested;
 
@@ -25,7 +25,7 @@ public class TerminalViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(CanSend));
         }
     }
-    public bool CanSend => ManualSendText.Length > 0;
+    public bool CanSend => (ManualSendText?.Length ?? 0) > 0;
 
     public void AppendLine(string l)
     {
@@ -40,6 +40,6 @@ public class TerminalViewModel : ViewModelBase
         if (CanSend) SendRequested?.Invoke(this, ManualSendText);
     }
 
-    private StringBuilder _TerminalText = new();
+    private readonly StringBuilder _TerminalText = new();
     private string _ManualSendText = string.Empty;
 }

@@ -10,7 +10,7 @@
         x:DataType="vm:TerminalViewModel">
 
         <Grid ColumnDefinitions="*,auto" RowDefinitions="*,auto">
-                <TextBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                <TextBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="txtTerminal"
                     IsReadOnly="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding TerminalText}"/>
                 <TextBox Grid.Column="0" Grid.Row="1" 
                     VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding ManualSendText, Mode=OneWayToSource}"/>

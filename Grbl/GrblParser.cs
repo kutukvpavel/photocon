@@ -40,8 +40,8 @@ namespace photocon.Grbl
     {
         public static StatusReport ParseStatusReport(string report)
         {
-            string[] splt = report.Trim('<', '>').Split('|', 2);
-            string[] pos = splt[1].Split(':')[1].Split(',', 1);
+            string[] splt = report.Trim('<', '>').Split('|', 3);
+            string[] pos = splt[1].Split(':')[1].Split(',', 2);
             return new StatusReport(splt[0], pos[0]);
         }
 

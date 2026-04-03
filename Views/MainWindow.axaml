@@ -55,7 +55,7 @@
                 <MenuItem Header="About" Click="AboutMenuItem_Click"/>
             </MenuItem>
         </Menu>
-            <TabControl Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsConnected}" MinWidth="40">
+            <TabControl Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" IsVisible="{Binding IsConnected}" MinWidth="150" MaxWidth="250" Margin="3,8">
                 <TabControl.Items>
                     <TabItem Header="FluidNC">
                         <local:Terminal DataContext="{Binding GrblTerminalContext}"/>

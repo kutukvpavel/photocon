@@ -146,6 +146,8 @@ public class MainWindowViewModel : ViewModelBase
                     catch (Exception ex)
                     {
                         Program.LogException(ex, "Failed to connect to electrometer");
+                        MotionControlContext?.Close();
+                        MotionControlContext = null;
                     }
                 }
                 if (success)
