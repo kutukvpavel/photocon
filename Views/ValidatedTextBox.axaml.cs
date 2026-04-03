@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 namespace photocon.Views;
@@ -19,6 +20,7 @@ public partial class ValidatedTextBox : UserControl
     {
         InitializeComponent();
 
+        if (Application.Current != null) Application.Current.ActualThemeVariantChanged += ActualThemeVariant_Changed;
         txtLabel.Bind(TextBlock.TextProperty, this.GetObservable(LabelProperty));
         txtLabel.Bind(TextBlock.IsVisibleProperty, this.GetObservable(ShowLabelProperty));
         this.GetObservable(ValueProperty).Subscribe((v) => txtValue.Text = v.ToString(FormatString));
@@ -56,7 +58,7 @@ public partial class ValidatedTextBox : UserControl
     private void txtValue_TextChanged(object? sender, TextChangedEventArgs e)
     {
         bool parsed = double.TryParse(txtValue.Text, NumberStyle, CultureInfo.CurrentUICulture, out double v);
-        txtValue.Background = parsed ? Brushes.LightGreen : Brushes.LightSalmon;
+        txtValue.Background = parsed ? App.GreenOK : App.OrangeWarning;
         if (parsed) {
             if (!txtValue.IsFocused) 
             {
@@ -77,5 +79,9 @@ public partial class ValidatedTextBox : UserControl
     private void AssignTemporaryValue()
     {
         if (TemporaryValue.HasValue) Value = TemporaryValue.Value;
+    }
+    private void ActualThemeVariant_Changed(object? sender, EventArgs e)
+    {
+        txtValue.Background = DataValidationErrors.GetHasErrors(txtValue) ? App.OrangeWarning : App.GreenOK;
     }
 }

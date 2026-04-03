@@ -21,10 +21,12 @@
         <Thickness x:Key="ExpanderHeaderPadding">0</Thickness>
         <Thickness x:Key="ExpanderChevronMarginMy">0</Thickness>
         <StaticResource x:Key="ExpanderChevronMargin" ResourceKey="ExpanderChevronMarginMy"></StaticResource>
+        <x:Double x:Key="ExpanderMinHeight">30</x:Double>
     </Window.Resources>
     <Window.Styles>
         <Style Selector="Expander /template/ ToggleButton#ExpanderHeader">
             <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="MinHeight" Value="24" />
         </Style>
         <Style Selector="Button">
             <Setter Property="Margin" Value="6,3"/>

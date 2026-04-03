@@ -1,17 +1,20 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
+using Avalonia.Media;
 using photocon.ViewModels;
 using photocon.Views;
 using System.IO;
 using System;
-using Avalonia.Styling;
 
 namespace photocon;
 
 public partial class App : Application
 {
     public static bool IsDarkThemed => (string?)(Current?.ActualThemeVariant.Key) == (string)ThemeVariant.Dark.Key;
+    public static IBrush GreenOK => IsDarkThemed ? Brushes.DarkGreen : Brushes.LightGreen;
+    public static IBrush OrangeWarning => IsDarkThemed ? Brushes.DarkRed : Brushes.LightSalmon;
     
     public Settings Configuration { get; private set; } = new();
 
