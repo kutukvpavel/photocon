@@ -1,5 +1,3 @@
-using System;
-using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using photocon.ViewModels;
@@ -13,7 +11,7 @@ public partial class Terminal : UserControl
     public Terminal()
     {
         InitializeComponent();
-        DataContextChanged += DataContext_Changed;
+        txtTerminal.TextChanged += OnDisplayTextChanged;
     }
 
     protected void Send_Click(object? sender, RoutedEventArgs e)
@@ -21,16 +19,8 @@ public partial class Terminal : UserControl
         (DataContext as TerminalViewModel)?.RequestSending();
     }
 
-    protected void DataContext_Changed(object? sender, EventArgs e)
+    protected void OnDisplayTextChanged(object? sender, TextChangedEventArgs e)
     {
-        if (LastDataContext != null) LastDataContext.PropertyChanged -= OnDisplayTextChanged;
-        LastDataContext = DataContext as TerminalViewModel;
-        if (LastDataContext != null) LastDataContext.PropertyChanged += OnDisplayTextChanged;
-    }
-
-    protected void OnDisplayTextChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(LastDataContext.TerminalText)) return;
-        txtTerminal.ScrollToLine(txtTerminal.GetLineCount() - 1);
+        txtTerminal.CaretIndex = txtTerminal.Text?.Length ?? 0;
     }
 }
