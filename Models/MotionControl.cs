@@ -1,10 +1,7 @@
 using System;
 using System.Globalization;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using photocon.Grbl;
-using SimpleTCP;
 
 namespace photocon.Models
 {
@@ -20,46 +17,30 @@ namespace photocon.Models
         Malfunction
     }
 
-    public class MotionControl
+    public class MotionControl : TcpStreamDeviceBase
     {
         public event EventHandler<TimestampedResult>? PositionChanged;
         public event EventHandler<MotionControlStates>? StateChanged;
-        public event EventHandler<string>? TerminalLineReceived;
 
         public static async Task<MotionControl?> Create(string host, int port, int autoReportInterval, int timeout = 2000)
         {
-            var cancel = new CancellationTokenSource();
-            try
-            {
-                cancel.CancelAfter(timeout);
-                var client = await new SimpleTcpClient().Connect(host, port, cancel.Token);
-                return new MotionControl(client, autoReportInterval);
-            }
-            catch (OperationCanceledException)
-            {
-                return null;
-            }
+            var socket = await Connect(host, port, timeout);
+            if (socket != null) return new MotionControl(socket, autoReportInterval);
+            else return null;
         }
 
         protected MotionControl(SimpleTcpClient port, int autoReportInterval)
+            : base(port)
         {
-            Port = port;
-            Port.StringEncoder = Encoding.ASCII;
-            Port.Delimiter = (byte)'\n';
-            Port.DelimiterDataReceived += Socket_DataReceived;
             WriteWithTerminal($"$Report/Interval={autoReportInterval}").Wait();
         }
 
         protected const int AutoReportOff = 0;
         protected float LastPosition = float.NaN;
         protected States LastState = States.Unknown;
-        protected SimpleTcpClient Port;
-        protected CancellationTokenSource Cancellation = new();
 
-        protected void Socket_DataReceived(object? sender, Message e)
+        protected override void ProcessReceivedLine(string s)
         {
-            string s = e.MessageString.Trim('\r');
-            TerminalLineReceived?.Invoke(this, s);
             var responseType = Parser.GetResponseType(s);
             switch (responseType)
             {
@@ -169,11 +150,6 @@ namespace photocon.Models
                 PositionChanged?.Invoke(this, new TimestampedResult(LastPosition));
             }
         }
-        protected async Task WriteWithTerminal(string cmd)
-        {
-            TerminalLineReceived?.Invoke(this, cmd);
-            await Port.WriteLine(cmd);
-        }
 
         public MotionControlStates State { get; private set; } = MotionControlStates.Unhomed;
 
@@ -202,14 +178,6 @@ namespace photocon.Models
         public void ForceSkipHoming()
         {
             if (State == MotionControlStates.Unhomed) State = MotionControlStates.Homed;
-        }
-        public void Close()
-        {
-            Port.Disconnect();
-        }
-        public async Task SendManualCommand(string cmd)
-        {
-            await WriteWithTerminal(cmd);
         }
         public async Task AbortMotion()
         {

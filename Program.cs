@@ -25,7 +25,7 @@ static class Program
         catch (Exception ex)
         {
             Logger.Fatal(ex);
-            await MessageBoxManager.GetMessageBoxStandard("Sensor Printing: Fatal Error", $"Fatal error ocurred, see logs: {ex.Message}")
+            await MessageBoxManager.GetMessageBoxStandard("Photocon: Fatal Error", $"Fatal error ocurred, see logs: {ex.Message}")
                 .ShowWindowAsync();
         }
     } 
@@ -41,7 +41,7 @@ static class Program
     public static void LogInfoWithMessage(string s)
     {
         Logger.Info(s);
-        MessageBoxManager.GetMessageBoxStandard("Sensor Printing: Message", s);
+        MessageBoxManager.GetMessageBoxStandard("Photocon: Message", s);
     }
     public static void LogInfo(string s)
     {
@@ -54,7 +54,7 @@ static class Program
             msg = $"{msg ?? "Exception occurred"} :{Environment.NewLine}{ex}";
         }
         Logger.Error(msg);
-        MessageBoxManager.GetMessageBoxStandard("Sensor Printing: Error", msg ?? "N/A");
+        MessageBoxManager.GetMessageBoxStandard("Photocon: Error", msg ?? "N/A");
     }
     public static void LogException(Exception? ex, string? msg)
     {

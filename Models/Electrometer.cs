@@ -2,117 +2,85 @@ using System;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using ScpiNet;
 
 namespace photocon.Models
 {
-    public class Electrometer : ScpiDevice
+    public class Electrometer : TcpStreamDeviceBase
     {
-        public static EventHandler<string>? ConnectionTerminalLineReceived;
-        public static int Timeout { get; set; } = 700;
-
-        public static async Task<Electrometer> Create(IScpiConnection connection, ILogger<ScpiDevice>? logger = null, CancellationToken cancellationToken = default)
-		{
-			// Try to open the connection:
-			logger?.LogInformation($"Opening TCP connection for device {connection.DevicePath}...");
-			await connection.Open(cancellationToken);
-
-			// Get device ID:
-			logger?.LogInformation("Connection succeeded, trying to read device ID...");
-
-            await connection.ClearBuffers(cancellationToken);
-            //string cls = "*CLS";
-            //await connection.WriteString(cls, true, cancellationToken);
-            //ConnectionTerminalLineReceived?.Invoke(null, cls);
-            ConnectionTerminalLineReceived?.Invoke(null, "*IDN?");
-			string id = await connection.GetId(cancellationToken);
-			logger?.LogInformation($"Connection succeeded. Device id: {id}");
-            ConnectionTerminalLineReceived?.Invoke(null, id);
-
-			// Create the driver instance.
-			return new Electrometer(connection, id, logger) { StripHeaders = false };
-		}
-
-        public static async Task<Electrometer> Create(string host, int port)
+        public static async Task<Electrometer?> Create(string host, int port, int timeout = 2000)
         {
-            return await Create(new TcpScpiConnection(host, port, Timeout));
+            var socket = await Connect(host, port, timeout);
+            if (socket != null) return new Electrometer(socket);
+            else return null;
+        }
+        protected static double ConvertReading(string response)
+        {
+            try
+            {
+                string[] splt = response.Split(',', 2);
+                return double.Parse(splt[0], CultureInfo.InvariantCulture);   
+            }
+            catch (Exception ex)
+            {
+                Program.LogException(ex, "Failed to convert reading to double");
+                return double.NaN;
+            }
         }
 
         public event EventHandler<TimestampedResult>? ResultReceived;
-        public event EventHandler<string>? TerminalLineReceived;
         
-        protected Electrometer(IScpiConnection connection, string id, ILogger<ScpiDevice>? logger)
-            : base(connection, id, logger)
+        protected Electrometer(SimpleTcpClient port)
+            : base(port)
         {
             
         }
 
-        protected async Task<string?> QueryWithTerminal(string cmd)
-        {
-            try
-            {
-                TerminalLineReceived?.Invoke(this, cmd);
-                //Cancellation.CancelAfter(Timeout);
-                string s = await Query(cmd, Cancellation.Token);
-                //if (!Cancellation.TryReset()) Cancellation = new CancellationTokenSource();
-                TerminalLineReceived?.Invoke(this, s);
-                return s;
-            }
-            catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
-            {
-                return null;
-            }
-        }
-        protected async Task SendWithTerminal(string cmd)
-        {
-            TerminalLineReceived?.Invoke(this, cmd);
-            await SendCmd(cmd);
-        }
-
-        protected async Task Poll()
+        protected void Poll()
         {
             var token = Cancellation.Token;
             try
             {
                 while (!token.IsCancellationRequested)
                 {
-                    string? s = await QueryWithTerminal(":READ?");
-                    if (s != null)
+                    if (!PollSemaphore!.Wait(PollIntervalMs, token))
                     {
-                        ResultReceived?.Invoke(this, new TimestampedResult(ConvertReading(s)));
+                        Program.LogException(new TimeoutException(), "Electrometer output processing took too long");
                     }
-                    await Task.Delay(PollIntervalMs);
+                    WriteWithTerminal(":READ?").Wait();
+                    token.WaitHandle.WaitOne(PollIntervalMs);
                 }
             }
             catch (OperationCanceledException)
             {
-                    
+                
             }
         }
 
-        protected double ConvertReading(string response)
+        protected override void ProcessReceivedLine(string s)
         {
+            if ((PollSemaphore?.CurrentCount ?? -1) != 0) return;
+            double reading = ConvertReading(s);
+            if (!double.IsNaN(reading)) ResultReceived?.Invoke(this, new TimestampedResult(reading));
             try
             {
-                return double.Parse(response, CultureInfo.InvariantCulture);   
+                PollSemaphore!.Release();
             }
-            catch (Exception ex)
+            catch (SemaphoreFullException ex)
             {
-                Logger?.LogError(ex, "Failed to convert reading to double");
-                return double.NaN;
+                Program.LogException(ex, "Should never happen (or a race condition)");
             }
         }
 
         protected Task? PollingTask;
+        protected SemaphoreSlim? PollSemaphore;
 
-        public CancellationTokenSource Cancellation { get; private set; } = new();
         public int PollIntervalMs { get; set; } = 1000;
         public bool IsPolling { get; private set; } = false;
 
         public void StartPoll()
         {
             if (IsPolling) return;
+            PollSemaphore = new(1, 1);
             PollingTask = Task.Run(Poll);
             IsPolling = true;
         }
@@ -126,17 +94,9 @@ namespace photocon.Models
             }
             Cancellation = new CancellationTokenSource();
             IsPolling = false;
-        }
-        public async Task SendManualCommand(string cmd)
-        {
-            if (cmd.EndsWith('?'))
-            {
-                await QueryWithTerminal(cmd);
-            }
-            else
-            {
-                await SendWithTerminal(cmd);
-            }
+            PollingTask = null;
+            PollSemaphore?.Dispose();
+            PollSemaphore = null;
         }
     }
 }
