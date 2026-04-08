@@ -4,12 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ScpiNet;
-using YamlDotNet.Core.Tokens;
 
 namespace photocon.Models
 {
     public class Electrometer : ScpiDevice
     {
+        public static EventHandler<string>? ConnectionTerminalLineReceived;
+        public static int Timeout { get; set; } = 700;
+
         public static async Task<Electrometer> Create(IScpiConnection connection, ILogger<ScpiDevice>? logger = null, CancellationToken cancellationToken = default)
 		{
 			// Try to open the connection:
@@ -19,16 +21,22 @@ namespace photocon.Models
 			// Get device ID:
 			logger?.LogInformation("Connection succeeded, trying to read device ID...");
 
+            await connection.ClearBuffers(cancellationToken);
+            //string cls = "*CLS";
+            //await connection.WriteString(cls, true, cancellationToken);
+            //ConnectionTerminalLineReceived?.Invoke(null, cls);
+            ConnectionTerminalLineReceived?.Invoke(null, "*IDN?");
 			string id = await connection.GetId(cancellationToken);
 			logger?.LogInformation($"Connection succeeded. Device id: {id}");
+            ConnectionTerminalLineReceived?.Invoke(null, id);
 
 			// Create the driver instance.
-			return new Electrometer(connection, id, logger);
+			return new Electrometer(connection, id, logger) { StripHeaders = false };
 		}
 
         public static async Task<Electrometer> Create(string host, int port)
         {
-            return await Create(new TcpScpiConnection(host, port));
+            return await Create(new TcpScpiConnection(host, port, Timeout));
         }
 
         public event EventHandler<TimestampedResult>? ResultReceived;
@@ -40,10 +48,21 @@ namespace photocon.Models
             
         }
 
-        protected async Task<string> QueryWithTerminal(string cmd)
+        protected async Task<string?> QueryWithTerminal(string cmd)
         {
-            TerminalLineReceived?.Invoke(this, cmd);
-            return await Query(cmd, Cancellation.Token);
+            try
+            {
+                TerminalLineReceived?.Invoke(this, cmd);
+                //Cancellation.CancelAfter(Timeout);
+                string s = await Query(cmd, Cancellation.Token);
+                //if (!Cancellation.TryReset()) Cancellation = new CancellationTokenSource();
+                TerminalLineReceived?.Invoke(this, s);
+                return s;
+            }
+            catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
+            {
+                return null;
+            }
         }
         protected async Task SendWithTerminal(string cmd)
         {
@@ -58,8 +77,11 @@ namespace photocon.Models
             {
                 while (!token.IsCancellationRequested)
                 {
-                    string s = await QueryWithTerminal(":READ?");
-                    ResultReceived?.Invoke(this, new TimestampedResult(ConvertReading(s)));
+                    string? s = await QueryWithTerminal(":READ?");
+                    if (s != null)
+                    {
+                        ResultReceived?.Invoke(this, new TimestampedResult(ConvertReading(s)));
+                    }
                     await Task.Delay(PollIntervalMs);
                 }
             }

@@ -12,8 +12,9 @@
         <Grid ColumnDefinitions="*,auto" RowDefinitions="*,auto">
                 <TextBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" x:Name="txtTerminal"
                     IsReadOnly="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding TerminalText}"/>
-                <TextBox Grid.Column="0" Grid.Row="1" 
-                    VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Text="{Binding ManualSendText, Mode=OneWayToSource}"/>
+                <TextBox Grid.Column="0" Grid.Row="1" x:Name="txtInput"
+                    VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding ManualSendText, Mode=OneWayToSource}"
+                    KeyDown="TextBox_KeyDown"/>
                 <Button Grid.Column="1" Grid.Row="1" Content="Send" Click="Send_Click" IsEnabled="{Binding CanSend}"/>
         </Grid>
 

@@ -28,6 +28,7 @@ public class MainWindowViewModel : ViewModelBase
         SpectrumData = new(ScanParamsContext);
         GrblTerminalContext.SendRequested += OnGrblManualSendRequsted;
         ScpiTerminalContext.SendRequested += OnScpiManualSendRequuested;
+        Electrometer.ConnectionTerminalLineReceived += OnElectrometerTerminal;
     }
 
     public MotionControl? MotionControlContext { get; private set; }

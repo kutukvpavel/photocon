@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using photocon.ViewModels;
 
@@ -32,5 +33,12 @@ public partial class Terminal : UserControl
     {
         if (e.PropertyName != nameof(LastDataContext.TerminalText)) return;
         txtTerminal.ScrollToLine(txtTerminal.GetLineCount() - 1);
+    }
+
+    protected void TextBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        Send_Click(this, new RoutedEventArgs());
+        txtInput.Text = string.Empty;
     }
 }
