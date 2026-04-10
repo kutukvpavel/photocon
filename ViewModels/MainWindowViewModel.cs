@@ -28,7 +28,6 @@ public class MainWindowViewModel : ViewModelBase
         SpectrumData = new(ScanParamsContext);
         GrblTerminalContext.SendRequested += OnGrblManualSendRequsted;
         ScpiTerminalContext.SendRequested += OnScpiManualSendRequuested;
-        Electrometer.ConnectionTerminalLineReceived += OnElectrometerTerminal;
     }
 
     public MotionControl? MotionControlContext { get; private set; }
@@ -142,7 +141,7 @@ public class MainWindowViewModel : ViewModelBase
                         ElectrometerContext.PollIntervalMs = Configuration.ElectrometerPollIntervalMs;
                         ElectrometerContext.ResultReceived += OnReadingReceived;
                         ElectrometerContext.TerminalLineReceived += OnElectrometerTerminal;
-                        success = true; 
+                        success = await ElectrometerContext.CheckIsConnected(); 
                     }
                     catch (Exception ex)
                     {

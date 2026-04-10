@@ -58,6 +58,10 @@ namespace photocon.Models
 
         protected override void ProcessReceivedLine(string s)
         {
+            if (!IsConnected)
+            {
+                IsConnected = true;
+            }
             if ((PollSemaphore?.CurrentCount ?? -1) != 0) return;
             double reading = ConvertReading(s);
             if (!double.IsNaN(reading)) ResultReceived?.Invoke(this, new TimestampedResult(reading));
@@ -73,10 +77,23 @@ namespace photocon.Models
 
         protected Task? PollingTask;
         protected SemaphoreSlim? PollSemaphore;
+        protected bool IsConnected = false;
 
         public int PollIntervalMs { get; set; } = 1000;
         public bool IsPolling { get; private set; } = false;
 
+        public async Task<bool> CheckIsConnected()
+        {
+            await WriteWithTerminal("*IDN?");
+            var token = Cancellation.Token;
+            int i = 0;
+            while (!Cancellation.IsCancellationRequested && !IsConnected)
+            {
+                await Task.Delay(50, token);
+                if (++i >= 40) return false;
+            }
+            return true;
+        }
         public void StartPoll()
         {
             if (IsPolling) return;
