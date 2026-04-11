@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using photocon.ViewModels;
 
 namespace photocon.Views;
@@ -32,7 +33,7 @@ public partial class Terminal : UserControl
     protected void OnDisplayTextChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(LastDataContext.TerminalText)) return;
-        txtTerminal.ScrollToLine(txtTerminal.GetLineCount() - 1);
+        Dispatcher.UIThread.InvokeAsync(() => txtTerminal.ScrollToLine(txtTerminal.GetLineCount() - 1));
     }
 
     protected void TextBox_KeyDown(object? sender, KeyEventArgs e)

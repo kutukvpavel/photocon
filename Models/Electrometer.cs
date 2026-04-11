@@ -112,7 +112,14 @@ namespace photocon.Models
             Cancellation = new CancellationTokenSource();
             IsPolling = false;
             PollingTask = null;
-            PollSemaphore?.Dispose();
+            try
+            {
+                PollSemaphore?.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                
+            }
             PollSemaphore = null;
         }
     }

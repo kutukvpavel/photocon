@@ -138,6 +138,7 @@ public class MainWindowViewModel : ViewModelBase
                     {
 
                         ElectrometerContext = await Electrometer.Create(Configuration.ElectrometerIp, Configuration.ElectrometerPort);
+                        if (ElectrometerContext == null) throw new TimeoutException();
                         ElectrometerContext.PollIntervalMs = Configuration.ElectrometerPollIntervalMs;
                         ElectrometerContext.ResultReceived += OnReadingReceived;
                         ElectrometerContext.TerminalLineReceived += OnElectrometerTerminal;

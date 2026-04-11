@@ -178,6 +178,7 @@ namespace photocon.Models
         public void ForceSkipHoming()
         {
             if (State == MotionControlStates.Unhomed) State = MotionControlStates.Homed;
+            StateChanged?.Invoke(this, State);
         }
         public async Task AbortMotion()
         {

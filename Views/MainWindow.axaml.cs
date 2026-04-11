@@ -145,6 +145,10 @@ public partial class MainWindow : Window
     {
         if (ViewModel != null) await ViewModel.Abort();
     }
+    public void Skip_Click(object? sender, RoutedEventArgs e)
+    {
+        ViewModel?.ForceSkipHoming();
+    }
 
     private static readonly FilePickerFileType[] FileTypeFilter = new FilePickerFileType[] { 
         new("yaml") { Patterns = new string[] { "*.yaml" } } 

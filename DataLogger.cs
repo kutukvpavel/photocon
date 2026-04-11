@@ -27,7 +27,14 @@ namespace photocon
             if (_BackupCsvWriter != null) await _BackupCsvWriter.FlushAsync();
             _BackupWriter?.Close();
             _BackupWriter = new StreamWriter(Path.Combine(_FolderPath, BackupSubfolderName, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv"));
-            _BackupCsvWriter?.Dispose();
+            try
+            {
+                _BackupCsvWriter?.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                
+            }
             _BackupCsvWriter = new CsvWriter(_BackupWriter, CultureInfo.InvariantCulture);
             await _BackupCsvWriter.NextRecordAsync();
         }

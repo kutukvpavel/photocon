@@ -3,3 +3,4 @@ obj/
 bin/
 logs/
 terminal_logs/
+backup/
