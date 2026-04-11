@@ -39,13 +39,13 @@ public partial class SpectrumPlot : UserControl
         {
             case Spectrum.DataChange.PointAdded:
                 if (e.PositionDomain != null) PositionalPlot.Add(e.PositionDomain.Value.Key, e.PositionDomain.Value.Value);
-                if (e.TimeDomain != null) PositionalPlot.Add(e.TimeDomain.Value.Key.ToOADate(), e.TimeDomain.Value.Value);
-                if (e.TimeDiscrepancy != null) PositionalPlot.Add(e.TimeDiscrepancy.Value.Key.ToOADate(), e.TimeDiscrepancy.Value.Value);
+                //if (e.TimeDomain != null) TimeDomainPlot.Add(e.TimeDomain.Value.Key.ToOADate(), e.TimeDomain.Value.Value);
+                //if (e.TimeDiscrepancy != null) TimeDiscrPlot.Add(e.TimeDiscrepancy.Value.Key.ToOADate(), e.TimeDiscrepancy.Value.Value);
                 break;
             case Spectrum.DataChange.Cleared:
                 PositionalPlot.Clear();
-                TimeDiscrPlot.Clear();
-                TimeDomainPlot.Clear();
+                //TimeDiscrPlot.Clear();
+                //TimeDomainPlot.Clear();
                 break;
             default: break;
         }
@@ -53,7 +53,7 @@ public partial class SpectrumPlot : UserControl
             if (chkAutoscaleX.IsChecked ?? false)
             {
                 Plot1.Plot.Axes.AutoScaleExpandX();
-                Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
+                //Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
             }
             if (chkAutoscaleY.IsChecked ?? false)
             {
@@ -67,12 +67,13 @@ public partial class SpectrumPlot : UserControl
     {
         if (LastDataContext == null) return;
         PositionalPlot.IsVisible = LastDataContext.EnablePositionalDomain;
-        TimeDomainPlot.IsVisible = LastDataContext.EnableTimeDomain;
+        /*TimeDomainPlot.IsVisible = LastDataContext.EnableTimeDomain;
         TimeDiscrPlot.IsVisible = LastDataContext.EnableTimeDiscrepancy;
         TimeAxis.IsVisible = TimeDomainPlot.IsVisible || TimeDiscrPlot.IsVisible;
         TimeDiscrAxis.IsVisible = TimeDiscrPlot.IsVisible;
         Plot1.Plot.Axes.Left.IsVisible = PositionalPlot.IsVisible || TimeDiscrPlot.IsVisible;
-        Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;
+        Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;*/
+        Plot1.Refresh();
     }
 
     protected void ResetScale_Click(object? sender, RoutedEventArgs e)
@@ -81,6 +82,7 @@ public partial class SpectrumPlot : UserControl
         var xlim = LastDataContext.GetPositionAxisLimits();
         Plot1.Plot.Axes.AutoScale();
         Plot1.Plot.Axes.SetLimits(xlim.Item1, xlim.Item2);
+        Plot1.Refresh();
     }
 
     protected void ActualThemeVariant_Changed(object? sender, EventArgs e)
@@ -128,14 +130,15 @@ public partial class SpectrumPlot : UserControl
         if (Application.Current != null) Application.Current.ActualThemeVariantChanged += ActualThemeVariant_Changed;
         DataContextChanged += DataContext_Changed;
 
-        TimeDiscrAxis = Plot1.Plot.Axes.Right;
-        TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis(); 
-        Plot1.Plot.Axes.AddXAxis(TimeAxis);
+        //TimeDiscrAxis = Plot1.Plot.Axes.Right;
+        //TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis(); 
+        //Plot1.Plot.Axes.AddXAxis(TimeAxis);
         PositionalPlot = Plot1.Plot.Add.DataLogger();
-        TimeDomainPlot = Plot1.Plot.Add.DataLogger();
-        TimeDomainPlot.Axes.XAxis = TimeAxis;
-        TimeDiscrPlot = Plot1.Plot.Add.DataLogger();
-        TimeDiscrPlot.Axes.XAxis = TimeAxis;
-        TimeDiscrPlot.Axes.YAxis = TimeDiscrAxis;
+        PositionalPlot.ManageAxisLimits = false;
+        //TimeDomainPlot = Plot1.Plot.Add.DataLogger();
+        //TimeDomainPlot.Axes.XAxis = TimeAxis;
+        //TimeDiscrPlot = Plot1.Plot.Add.DataLogger();
+        //TimeDiscrPlot.Axes.XAxis = TimeAxis;
+        //TimeDiscrPlot.Axes.YAxis = TimeDiscrAxis;
     }
 }

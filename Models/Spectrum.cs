@@ -80,8 +80,10 @@ namespace photocon.Models
                     DataChanged?.Invoke(this, new DataChangedEventArgs(DataChange.PointAdded) { TimeDiscrepancy = discr });
                     return;
                 }
-                PositionDomainPoints.Add(_LastX.Value.Result, y.Result);
-                TimeDomainPoints.Add(y.Timestamp, y.Result);
+                positional = new(_LastX.Value.Result, y.Result);
+                PositionDomainPoints.Add(positional.Value.Key, positional.Value.Value);
+                time = new(y.Timestamp, y.Result);
+                TimeDomainPoints.Add(time.Value.Key, time.Value.Value);
                 _LastX = null;
             }
             DataChanged?.Invoke(this, new DataChangedEventArgs(DataChange.PointAdded) 

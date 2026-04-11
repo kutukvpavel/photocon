@@ -178,6 +178,7 @@ public class MainWindowViewModel : ViewModelBase
                 if (_InternalUiState == UiStates.Ready && _InternalState == MotionControlStates.WaitingAtStart)
                 {
                     await Logger.CreateNewBackupFile();
+                    SpectrumData.Clear();
                     SpectrumData.SetAcquisitionParameters(ScanParamsContext);
                     ElectrometerContext!.StartPoll();
                     _InternalUiState = UiStates.AcqiringSpectrum;
