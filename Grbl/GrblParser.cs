@@ -47,6 +47,7 @@ namespace photocon.Grbl
 
         public static ResponseTypes GetResponseType(string report)
         {
+            if (report.Length == 0) return ResponseTypes.Unknown;
             switch (report[0])
             {
                 case '<':

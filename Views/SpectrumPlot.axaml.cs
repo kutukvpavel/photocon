@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -10,7 +11,9 @@ namespace photocon.Views;
 
 public partial class SpectrumPlot : UserControl
 {
-    protected ScottPlot.Plottables.DataLogger PositionalPlot;
+    protected List<double> PositionalX = new();
+    protected List<double> PositionalY = new();
+    protected ScottPlot.Plottables.Scatter PositionalPlot;
     protected ScottPlot.Plottables.DataLogger TimeDomainPlot;
     protected ScottPlot.Plottables.DataLogger TimeDiscrPlot;
     protected IYAxis TimeDiscrAxis;
@@ -38,12 +41,17 @@ public partial class SpectrumPlot : UserControl
         switch (e.ChangeType)
         {
             case Spectrum.DataChange.PointAdded:
-                if (e.PositionDomain != null) PositionalPlot.Add(e.PositionDomain.Value.Key, e.PositionDomain.Value.Value);
+                if (e.PositionDomain != null)
+                {
+                    PositionalX.Add(e.PositionDomain.Value.Key);
+                    PositionalY.Add(e.PositionDomain.Value.Value);
+                }
                 //if (e.TimeDomain != null) TimeDomainPlot.Add(e.TimeDomain.Value.Key.ToOADate(), e.TimeDomain.Value.Value);
                 //if (e.TimeDiscrepancy != null) TimeDiscrPlot.Add(e.TimeDiscrepancy.Value.Key.ToOADate(), e.TimeDiscrepancy.Value.Value);
                 break;
             case Spectrum.DataChange.Cleared:
-                PositionalPlot.Clear();
+                PositionalX.Clear();
+                PositionalY.Clear();
                 //TimeDiscrPlot.Clear();
                 //TimeDomainPlot.Clear();
                 break;
@@ -133,8 +141,7 @@ public partial class SpectrumPlot : UserControl
         //TimeDiscrAxis = Plot1.Plot.Axes.Right;
         //TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis(); 
         //Plot1.Plot.Axes.AddXAxis(TimeAxis);
-        PositionalPlot = Plot1.Plot.Add.DataLogger();
-        PositionalPlot.ManageAxisLimits = false;
+        PositionalPlot = Plot1.Plot.Add.ScatterLine(PositionalX, PositionalY);
         //TimeDomainPlot = Plot1.Plot.Add.DataLogger();
         //TimeDomainPlot.Axes.XAxis = TimeAxis;
         //TimeDiscrPlot = Plot1.Plot.Add.DataLogger();
