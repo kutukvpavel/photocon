@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -145,9 +144,9 @@ public partial class MainWindow : Window
     {
         if (ViewModel != null) await ViewModel.Abort();
     }
-    public void Skip_Click(object? sender, RoutedEventArgs e)
+    public async void Skip_Click(object? sender, RoutedEventArgs e)
     {
-        ViewModel?.ForceSkipHoming();
+        if (ViewModel != null) await ViewModel.ForceSkipHoming();
     }
 
     private static readonly FilePickerFileType[] FileTypeFilter = new FilePickerFileType[] { 

@@ -10,7 +10,7 @@
         x:Class="photocon.Views.SpectrumPlot"
         x:DataType="m:Spectrum">
 
-        <Grid RowDefinitions="*,auto,auto">
+        <Grid ColumnDefinitions="*" RowDefinitions="*,auto,auto">
                 <plot:AvaPlot x:Name="Plot1"/>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,1">
                         <TextBlock Text="Show plots: "/>

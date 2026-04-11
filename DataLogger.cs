@@ -39,11 +39,11 @@ namespace photocon
             await _BackupCsvWriter.NextRecordAsync();
         }
 
-        public async Task LogPointBackup(double wavelength, double conductance)
+        public async Task LogPointBackup(TimestampedResult r)
         {
             if (_BackupCsvWriter == null) await CreateNewBackupFile();
-            _BackupCsvWriter!.WriteField(wavelength);
-            _BackupCsvWriter!.WriteField(conductance);
+            _BackupCsvWriter!.WriteField($"{r.Timestamp:yyyy-MM-dd HH-mm-ss}");
+            _BackupCsvWriter!.WriteField(r.Result);
             await _BackupCsvWriter!.NextRecordAsync();
         }
 

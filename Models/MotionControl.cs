@@ -67,7 +67,6 @@ namespace photocon.Models
                     case MotionControlStates.Unhomed:
                         switch (sr.State)
                         {
-                            case States.Run:
                             case States.Home:
                                 State = MotionControlStates.Homing;
                                 break;
@@ -83,7 +82,7 @@ namespace photocon.Models
                             default: break;
                         }
                         break;
-                    case MotionControlStates.Homed:
+                    /*case MotionControlStates.Homed:
                         switch (sr.State)
                         {
                             case States.Run:
@@ -91,7 +90,7 @@ namespace photocon.Models
                                 break;
                             default: break;
                         }
-                        break;
+                        break;*/
                     case MotionControlStates.MovingToStart:
                         switch (sr.State)
                         {
@@ -101,7 +100,7 @@ namespace photocon.Models
                             default: break;
                         }
                         break;
-                    case MotionControlStates.WaitingAtStart:
+                    /*case MotionControlStates.WaitingAtStart:
                         switch (sr.State)
                         {
                             case States.Run:
@@ -109,7 +108,7 @@ namespace photocon.Models
                                 break;
                             default: break;
                         }
-                        break;
+                        break;*/
                     case MotionControlStates.MovingToEnd:
                         switch (sr.State)
                         {
@@ -119,7 +118,7 @@ namespace photocon.Models
                             default: break;
                         }
                         break;
-                    case MotionControlStates.End:
+                    /*case MotionControlStates.End:
                         switch (sr.State)
                         {
                             case States.Run:
@@ -127,7 +126,7 @@ namespace photocon.Models
                                 break;
                             default: break;
                         }
-                        break;
+                        break;*/
                     case MotionControlStates.Malfunction:
                         switch (sr.State)
                         {
@@ -161,23 +160,37 @@ namespace photocon.Models
                     await WriteWithTerminal("$H");
                     break;
                 case MotionControlStates.Homed:
-                    await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
+                    if (LastPosition == p.Start)
+                    {
+                        State = MotionControlStates.WaitingAtStart;
+                    }
+                    else
+                    {
+                        State = MotionControlStates.MovingToStart;
+                        await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
+                    }
                     break;
                 case MotionControlStates.WaitingAtStart:
+                    State = MotionControlStates.MovingToEnd;
                     await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}", p.End, p.Speed));
                     break;
                 case MotionControlStates.End:
+                    State = MotionControlStates.MovingToStart;
                     await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G0 X{0:F2}", p.Start));
                     break;
                 case MotionControlStates.Malfunction:
                     State = MotionControlStates.Unhomed; //Reset any error, expect manual handling of this situation
+                    await WriteWithTerminal("\x18");
                     break;
                 default: break;
             }
+            StateChanged?.Invoke(this, State);
         }
-        public void ForceSkipHoming()
+        public async Task ForceSkipHoming()
         {
-            if (State == MotionControlStates.Unhomed) State = MotionControlStates.Homed;
+            if (State != MotionControlStates.Unhomed) return; 
+            State = MotionControlStates.Homed;
+            await WriteWithTerminal("?");
             StateChanged?.Invoke(this, State);
         }
         public async Task AbortMotion()

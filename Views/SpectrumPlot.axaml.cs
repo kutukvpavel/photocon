@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using photocon.Models;
 using ScottPlot;
 
@@ -48,16 +49,18 @@ public partial class SpectrumPlot : UserControl
                 break;
             default: break;
         }
-        if (chkAutoscaleX.IsChecked ?? false)
-        {
-            Plot1.Plot.Axes.AutoScaleExpandX();
-            Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
-        }
-        if (chkAutoscaleY.IsChecked ?? false)
-        {
-            Plot1.Plot.Axes.AutoScaleY();
-        }
-        Plot1.Refresh();
+        Dispatcher.UIThread.InvokeAsync(() => {
+            if (chkAutoscaleX.IsChecked ?? false)
+            {
+                Plot1.Plot.Axes.AutoScaleExpandX();
+                Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
+            }
+            if (chkAutoscaleY.IsChecked ?? false)
+            {
+                Plot1.Plot.Axes.AutoScaleY();
+            }
+            Plot1.Refresh();
+        });
     }
 
     protected void OnActivePlotsChanged(object? sender, RoutedEventArgs e)

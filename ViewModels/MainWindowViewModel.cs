@@ -189,10 +189,10 @@ public class MainWindowViewModel : ViewModelBase
         }
         UpdateUiStates();
     }
-    public void ForceSkipHoming()
+    public async Task ForceSkipHoming()
     {
         if (MotionControlContext == null || !CanForceSkipState) return;
-        MotionControlContext.ForceSkipHoming();
+        await MotionControlContext.ForceSkipHoming();
         UpdateUiStates();
     }
     public async Task SaveSpectrum(string path)
@@ -254,6 +254,7 @@ public class MainWindowViewModel : ViewModelBase
     }
     protected void OnReadingReceived(object? sender, TimestampedResult r)
     {
+        Logger.LogPointBackup(r);
         SpectrumData.AddY(r);
     }
     protected void OnGrblManualSendRequsted(object? sender, string e)
