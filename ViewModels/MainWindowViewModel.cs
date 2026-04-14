@@ -66,7 +66,7 @@ public class MainWindowViewModel : ViewModelBase
                     MotionControlStates.Malfunction => "Reset",
                     _ => NotAvailable
                 },
-                UiStates.Finished => "Save Spectrum",
+                UiStates.Finished => "New Spectrum",
                 _ => NotAvailable
             };
         }
@@ -166,8 +166,6 @@ public class MainWindowViewModel : ViewModelBase
             }
             case UiStates.Finished:
             {
-                if (arg == null) throw new NullReferenceException();
-                await SaveSpectrumInternal(arg);
                 _InternalUiState = UiStates.Ready;
                 break;
             }
@@ -199,14 +197,7 @@ public class MainWindowViewModel : ViewModelBase
     public async Task SaveSpectrum(string path)
     {
         if (!CanSaveSpectrum) return;
-        if (_InternalUiState == UiStates.Finished)
-        {
-            await AdvanceStateMachine(path);
-        }
-        else //Malfunction
-        {
-            await SaveSpectrumInternal(path);
-        }
+        await SaveSpectrumInternal(path);
     }
     public async Task Abort()
     {

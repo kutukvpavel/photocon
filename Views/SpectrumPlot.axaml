@@ -8,17 +8,17 @@
         xmlns:app="using:photocon"
         xmlns:plot="using:ScottPlot.Avalonia"
         x:Class="photocon.Views.SpectrumPlot"
-        x:DataType="m:Spectrum">
+        x:DataType="m:Spectrum" ClipToBounds="true">
 
         <Grid ColumnDefinitions="*" RowDefinitions="*,auto,auto">
                 <plot:AvaPlot x:Name="Plot1"/>
                 <StackPanel Grid.Row="1" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,1">
                         <TextBlock Text="Show plots: "/>
-                        <CheckBox IsCheckedChanged="OnActivePlotsChanged" 
+                        <CheckBox IsCheckedChanged="OnActivePlotsChanged" x:Name="chkPositional"
                                 IsChecked="{Binding EnablePositionalDomain, Mode=TwoWay}">Conductance vs Wavelength</CheckBox>
-                        <CheckBox IsCheckedChanged="OnActivePlotsChanged"
+                        <CheckBox IsCheckedChanged="OnActivePlotsChanged" x:Name="chkTimeDomain"
                                 IsChecked="{Binding EnableTimeDomain, Mode=TwoWay}">Conductance vs Time</CheckBox>
-                        <CheckBox IsCheckedChanged="OnActivePlotsChanged"
+                        <CheckBox IsCheckedChanged="OnActivePlotsChanged" x:Name="chkTimeDiscr"
                                 IsChecked="{Binding EnableTimeDiscrepancy, Mode=TwoWay}">Time Discrepancy vs Time</CheckBox>
                 </StackPanel>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" Margin="6,1">
@@ -26,6 +26,10 @@
                         <CheckBox x:Name="chkAutoscaleY" IsChecked="True">Autoscale Y</CheckBox>
                         <CheckBox x:Name="chkAutoscaleX" IsChecked="False">Autoscale X</CheckBox>
                         <Button Click="ResetScale_Click">Reset Scale</Button>
+                        <TextBlock Text="Mean Time Discrepancy (s): " Margin="10,0,0,0"/>
+                        <TextBlock x:Name="txtDiscrepancy"/>
+                        <TextBlock Text="Max Time Discrepancy (s): " Margin="10,0,0,0"/>
+                        <TextBlock x:Name="txtMaxDiscrepancy"/>
                 </StackPanel>
         </Grid>
 

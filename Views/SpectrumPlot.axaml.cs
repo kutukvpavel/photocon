@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -11,9 +10,8 @@ namespace photocon.Views;
 
 public partial class SpectrumPlot : UserControl
 {
-    protected List<double> PositionalX = new();
-    protected List<double> PositionalY = new();
-    protected ScottPlot.Plottables.Scatter PositionalPlot;
+    protected const string NotAvailable = "N/A";
+    protected ScottPlot.Plottables.DataLogger PositionalPlot;
     protected ScottPlot.Plottables.DataLogger TimeDomainPlot;
     protected ScottPlot.Plottables.DataLogger TimeDiscrPlot;
     protected IYAxis TimeDiscrAxis;
@@ -38,30 +36,34 @@ public partial class SpectrumPlot : UserControl
 
     protected void OnDataChanged(object? sender, Spectrum.DataChangedEventArgs e)
     {
+        string? discr = null;
+        string? maxdiscr = null;
         switch (e.ChangeType)
         {
             case Spectrum.DataChange.PointAdded:
                 if (e.PositionDomain != null)
                 {
-                    PositionalX.Add(e.PositionDomain.Value.Key);
-                    PositionalY.Add(e.PositionDomain.Value.Value);
+                    PositionalPlot.Add(e.PositionDomain.Value.Key, e.PositionDomain.Value.Value);
                 }
-                //if (e.TimeDomain != null) TimeDomainPlot.Add(e.TimeDomain.Value.Key.ToOADate(), e.TimeDomain.Value.Value);
-                //if (e.TimeDiscrepancy != null) TimeDiscrPlot.Add(e.TimeDiscrepancy.Value.Key.ToOADate(), e.TimeDiscrepancy.Value.Value);
+                if (e.TimeDomain != null) TimeDomainPlot.Add(e.TimeDomain.Value.Key.ToOADate(), e.TimeDomain.Value.Value);
+                if (e.TimeDiscrepancy != null) TimeDiscrPlot.Add(e.TimeDiscrepancy.Value.Key.ToOADate(), e.TimeDiscrepancy.Value.Value);
+                discr = LastDataContext?.AverageTimeDiscrepancySeconds.ToString("F1");
+                maxdiscr = LastDataContext?.MaxTimeDiscrepancySeconds.ToString("F1");
                 break;
             case Spectrum.DataChange.Cleared:
-                PositionalX.Clear();
-                PositionalY.Clear();
-                //TimeDiscrPlot.Clear();
-                //TimeDomainPlot.Clear();
+                PositionalPlot.Data.Clear();
+                TimeDiscrPlot.Data.Clear();
+                TimeDomainPlot.Data.Clear();
                 break;
             default: break;
         }
         Dispatcher.UIThread.InvokeAsync(() => {
+            txtDiscrepancy.Text = discr ?? NotAvailable;
+            txtMaxDiscrepancy.Text = maxdiscr ?? NotAvailable;
             if (chkAutoscaleX.IsChecked ?? false)
             {
                 Plot1.Plot.Axes.AutoScaleExpandX();
-                //Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
+                Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
             }
             if (chkAutoscaleY.IsChecked ?? false)
             {
@@ -74,13 +76,13 @@ public partial class SpectrumPlot : UserControl
     protected void OnActivePlotsChanged(object? sender, RoutedEventArgs e)
     {
         if (LastDataContext == null) return;
-        PositionalPlot.IsVisible = LastDataContext.EnablePositionalDomain;
-        /*TimeDomainPlot.IsVisible = LastDataContext.EnableTimeDomain;
-        TimeDiscrPlot.IsVisible = LastDataContext.EnableTimeDiscrepancy;
+        PositionalPlot.IsVisible = chkPositional.IsChecked ?? true;
+        TimeDomainPlot.IsVisible = chkTimeDomain.IsChecked ?? true;
+        TimeDiscrPlot.IsVisible = chkTimeDiscr.IsChecked ?? true;
         TimeAxis.IsVisible = TimeDomainPlot.IsVisible || TimeDiscrPlot.IsVisible;
         TimeDiscrAxis.IsVisible = TimeDiscrPlot.IsVisible;
         Plot1.Plot.Axes.Left.IsVisible = PositionalPlot.IsVisible || TimeDiscrPlot.IsVisible;
-        Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;*/
+        Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;
         Plot1.Refresh();
     }
 
@@ -89,7 +91,7 @@ public partial class SpectrumPlot : UserControl
         if (LastDataContext == null) return;
         var xlim = LastDataContext.GetPositionAxisLimits();
         Plot1.Plot.Axes.AutoScale();
-        Plot1.Plot.Axes.SetLimits(xlim.Item1, xlim.Item2);
+        Plot1.Plot.Axes.SetLimitsX(xlim.Item1, xlim.Item2);
         Plot1.Refresh();
     }
 
@@ -138,14 +140,19 @@ public partial class SpectrumPlot : UserControl
         if (Application.Current != null) Application.Current.ActualThemeVariantChanged += ActualThemeVariant_Changed;
         DataContextChanged += DataContext_Changed;
 
-        //TimeDiscrAxis = Plot1.Plot.Axes.Right;
-        //TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis(); 
-        //Plot1.Plot.Axes.AddXAxis(TimeAxis);
-        PositionalPlot = Plot1.Plot.Add.ScatterLine(PositionalX, PositionalY);
-        //TimeDomainPlot = Plot1.Plot.Add.DataLogger();
-        //TimeDomainPlot.Axes.XAxis = TimeAxis;
-        //TimeDiscrPlot = Plot1.Plot.Add.DataLogger();
-        //TimeDiscrPlot.Axes.XAxis = TimeAxis;
-        //TimeDiscrPlot.Axes.YAxis = TimeDiscrAxis;
+        Plot1.Plot.XLabel("Wavelength, nm");
+        Plot1.Plot.YLabel("Current, A");
+        TimeDiscrAxis = Plot1.Plot.Axes.Right;
+        TimeDiscrAxis.Label.Text = "Time Discrepancy, s";
+        TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis();
+        TimeAxis.LabelText = "Time";
+        Plot1.Plot.Axes.AddXAxis(TimeAxis);
+        PositionalPlot = Plot1.Plot.Add.DataLogger();
+        PositionalPlot.ManageAxisLimits = false;
+        TimeDomainPlot = Plot1.Plot.Add.DataLogger();
+        TimeDomainPlot.Axes.XAxis = TimeAxis;
+        TimeDiscrPlot = Plot1.Plot.Add.DataLogger();
+        TimeDiscrPlot.Axes.XAxis = TimeAxis;
+        TimeDiscrPlot.Axes.YAxis = TimeDiscrAxis;
     }
 }

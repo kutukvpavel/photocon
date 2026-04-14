@@ -1,6 +1,6 @@
 SaveLocation: 
 LoadLocation: 
-SpectrumSaveLocation: 
+SpectrumSaveLocation: /home/paul/Documents
 ElectrometerIp: 192.168.1.200
 ElectrometerPort: 3000
 FluidNcIp: 192.168.1.200

@@ -76,6 +76,7 @@
         </StackPanel>
         <StackPanel Grid.Column="2" Grid.Row="2" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalAlignment="Right" Margin="10,3">
             <TextBlock Text="Actions: "/>
+            <Button IsVisible="{Binding CanSaveSpectrum}" Click="SaveSpectrum_Click">Save Spectrum</Button>
             <Button Content="{Binding NextStateString}" IsEnabled="{Binding CanAdvanceStateMachine}" Click="AdvanceStateMachine_Click"/>
             <Button IsEnabled="{Binding CanForceSkipState}" Click="Skip_Click">Skip</Button>
             <Button IsEnabled="{Binding CanAbort}" Click="Abort_Click">Abort</Button>
