@@ -16,16 +16,16 @@ axes:
   shared_stepper_disable_pin: I2SO.0
   x:
     steps_per_mm: 16000.00
-    max_rate_mm_per_min: 150.000
-    acceleration_mm_per_sec2: 8.000
-    max_travel_mm: 301.000
+    max_rate_mm_per_min: 180.000
+    acceleration_mm_per_sec2: 5.000
+    max_travel_mm: 300.000
     soft_limits: true
     homing:
       cycle: 1
       positive_direction: false
       mpos_mm: 200.000
       feed_mm_per_min: 10.000
-      seek_mm_per_min: 100.000
+      seek_mm_per_min: 150.000
       settle_ms: 500
       seek_scaler: 1.100
       feed_scaler: 1.100
@@ -37,6 +37,14 @@ axes:
       stepstick:
         step_pin: I2SO.1
         direction_pin: I2SO.2
+  y:
+    steps_per_mm: 16000.00
+    max_rate_mm_per_min: 180.000
+    acceleration_mm_per_sec2: 5.000
+  z:
+    steps_per_mm: 16000.00
+    max_rate_mm_per_min: 180.000
+    acceleration_mm_per_sec2: 5.000
 
 i2so:
   bck_pin: gpio.16
