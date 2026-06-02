@@ -22,29 +22,22 @@ namespace photocon
             }
         }
 
-        public async Task CreateNewBackupFile()
+        public async Task CreateNewElectrometerBackupFile()
         {
-            if (_BackupCsvWriter != null) await _BackupCsvWriter.FlushAsync();
-            _BackupWriter?.Close();
-            _BackupWriter = new StreamWriter(Path.Combine(_FolderPath, BackupSubfolderName, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv"));
-            try
-            {
-                _BackupCsvWriter?.Dispose();
-            }
-            catch (ObjectDisposedException)
-            {
-                
-            }
-            _BackupCsvWriter = new CsvWriter(_BackupWriter, CultureInfo.InvariantCulture);
-            await _BackupCsvWriter.NextRecordAsync();
+            await CreateBackupFile(_BackupElectrometerWriter, _BackupElectrometerCsvWriter, "Electro");
+        }
+        public async Task CreateNewPositionBackupFile()
+        {
+            await CreateBackupFile(_BackupPositionWriter, _BackupPositionCsvWriter, "Position");
         }
 
-        public async Task LogPointBackup(TimestampedResult r)
+        public async Task LogElectrometerPointBackup(TimestampedResult r)
         {
-            if (_BackupCsvWriter == null) await CreateNewBackupFile();
-            _BackupCsvWriter!.WriteField($"{r.Timestamp:yyyy-MM-dd HH-mm-ss}");
-            _BackupCsvWriter!.WriteField(r.Result);
-            await _BackupCsvWriter!.NextRecordAsync();
+            await LogPointBackup(_BackupElectrometerCsvWriter, CreateNewElectrometerBackupFile, r);
+        }
+        public async Task LogPositionPointBackup(TimestampedResult r)
+        {
+            await LogPointBackup(_BackupPositionCsvWriter, CreateNewPositionBackupFile, r);
         }
 
         public static async Task SaveSpectrum(Spectrum s, string path)
@@ -104,8 +97,34 @@ namespace photocon
         }
 
 
-        protected TextWriter? _BackupWriter;
-        protected CsvWriter? _BackupCsvWriter;
+        protected TextWriter? _BackupElectrometerWriter;
+        protected CsvWriter? _BackupElectrometerCsvWriter;
+        protected TextWriter? _BackupPositionWriter;
+        protected CsvWriter? _BackupPositionCsvWriter;
         protected string _FolderPath;
+
+        protected async Task CreateBackupFile(TextWriter? backupWriter, CsvWriter? backupCsvWriter, string suffix)
+        {
+            if (backupCsvWriter != null) await backupCsvWriter.FlushAsync();
+            backupWriter?.Close();
+            backupWriter = new StreamWriter(Path.Combine(_FolderPath, BackupSubfolderName, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{suffix}.csv"));
+            try
+            {
+                backupCsvWriter?.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                
+            }
+            backupCsvWriter = new CsvWriter(backupWriter, CultureInfo.InvariantCulture);
+            await backupCsvWriter.NextRecordAsync();
+        }
+        protected static async Task LogPointBackup(CsvWriter? csvWriter, Func<Task> fallbackCreationAction, TimestampedResult r)
+        {
+            if (csvWriter == null) await fallbackCreationAction();
+            csvWriter!.WriteField($"{r.Timestamp:yyyy-MM-dd HH-mm-ss}");
+            csvWriter!.WriteField(r.Result);
+            await csvWriter!.NextRecordAsync();
+        }
     }
 }

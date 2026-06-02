@@ -80,7 +80,12 @@ public partial class SpectrumPlot : UserControl
         TimeDomainPlot.IsVisible = chkTimeDomain.IsChecked ?? true;
         TimeDiscrPlot.IsVisible = chkTimeDiscr.IsChecked ?? true;
         TimeAxis.IsVisible = TimeDomainPlot.IsVisible || TimeDiscrPlot.IsVisible;
-        TimeDiscrAxis.IsVisible = TimeDiscrPlot.IsVisible;
+        if (TimeDiscrAxis.IsVisible != TimeDiscrPlot.IsVisible)
+        {
+            TimeDiscrAxis.IsVisible = TimeDiscrPlot.IsVisible;
+            Plot1.Margin = new Thickness(Plot1.Margin.Left, Plot1.Margin.Top, TimeDiscrAxis.IsVisible ? 1 : 10, Plot1.Margin.Bottom);
+            Plot1.InvalidateMeasure();
+        }
         Plot1.Plot.Axes.Left.IsVisible = PositionalPlot.IsVisible || TimeDiscrPlot.IsVisible;
         Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;
         Plot1.Refresh();
@@ -144,8 +149,10 @@ public partial class SpectrumPlot : UserControl
         Plot1.Plot.YLabel("Current, A");
         TimeDiscrAxis = Plot1.Plot.Axes.Right;
         TimeDiscrAxis.Label.Text = "Time Discrepancy, s";
-        TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis();
-        TimeAxis.LabelText = "Time";
+        TimeAxis = new ScottPlot.AxisPanels.DateTimeXAxis
+        {
+            LabelText = "Time"
+        };
         Plot1.Plot.Axes.AddXAxis(TimeAxis);
         PositionalPlot = Plot1.Plot.Add.DataLogger();
         PositionalPlot.ManageAxisLimits = false;

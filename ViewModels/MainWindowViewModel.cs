@@ -175,7 +175,8 @@ public class MainWindowViewModel : ViewModelBase
                 IsBusy = true;
                 if (_InternalUiState == UiStates.Ready && _InternalState == MotionControlStates.WaitingAtStart)
                 {
-                    await Logger.CreateNewBackupFile();
+                    await Logger.CreateNewPositionBackupFile();
+                    await Logger.CreateNewElectrometerBackupFile();
                     SpectrumData.Clear();
                     SpectrumData.SetAcquisitionParameters(ScanParamsContext);
                     ElectrometerContext!.StartPoll();
@@ -222,6 +223,7 @@ public class MainWindowViewModel : ViewModelBase
     }
     protected void OnPositionChanged(object? sender, TimestampedResult p)
     {
+        _ = Logger.LogPositionPointBackup(p);
         SpectrumData.UpdateX(p);
     }
     protected async void OnStateChanged(object? sender, MotionControlStates s)
@@ -246,7 +248,7 @@ public class MainWindowViewModel : ViewModelBase
     }
     protected void OnReadingReceived(object? sender, TimestampedResult r)
     {
-        Logger.LogPointBackup(r);
+        _ = Logger.LogElectrometerPointBackup(r);
         SpectrumData.AddY(r);
     }
     protected void OnGrblManualSendRequsted(object? sender, string e)
