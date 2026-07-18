@@ -62,8 +62,7 @@ public partial class SpectrumPlot : UserControl
             txtMaxDiscrepancy.Text = maxdiscr ?? NotAvailable;
             if (chkAutoscaleX.IsChecked ?? false)
             {
-                Plot1.Plot.Axes.AutoScaleExpandX();
-                Plot1.Plot.Axes.AutoScaleExpandX(TimeAxis);
+                Plot1.Plot.Axes.Bottom.Min = PositionalPlot.GetAxisLimits().XRange.Min;
             }
             if (chkAutoscaleY.IsChecked ?? false)
             {
@@ -80,12 +79,6 @@ public partial class SpectrumPlot : UserControl
         TimeDomainPlot.IsVisible = chkTimeDomain.IsChecked ?? true;
         TimeDiscrPlot.IsVisible = chkTimeDiscr.IsChecked ?? true;
         TimeAxis.IsVisible = TimeDomainPlot.IsVisible || TimeDiscrPlot.IsVisible;
-        if (TimeDiscrAxis.IsVisible != TimeDiscrPlot.IsVisible)
-        {
-            TimeDiscrAxis.IsVisible = TimeDiscrPlot.IsVisible;
-            Plot1.Margin = new Thickness(Plot1.Margin.Left, Plot1.Margin.Top, TimeDiscrAxis.IsVisible ? 1 : 10, Plot1.Margin.Bottom);
-            Plot1.InvalidateMeasure();
-        }
         Plot1.Plot.Axes.Left.IsVisible = PositionalPlot.IsVisible || TimeDiscrPlot.IsVisible;
         Plot1.Plot.Axes.Bottom.IsVisible = PositionalPlot.IsVisible;
         Plot1.Refresh();
