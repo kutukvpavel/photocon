@@ -24,11 +24,15 @@ namespace photocon
 
         public async Task CreateNewElectrometerBackupFile()
         {
-            await CreateBackupFile(_BackupElectrometerWriter, _BackupElectrometerCsvWriter, "Electro");
+            var r = await CreateBackupFile(_BackupElectrometerWriter, _BackupElectrometerCsvWriter, "Electro");
+            _BackupElectrometerWriter = r.Item1;
+            _BackupElectrometerCsvWriter = r.Item2;
         }
         public async Task CreateNewPositionBackupFile()
         {
-            await CreateBackupFile(_BackupPositionWriter, _BackupPositionCsvWriter, "Position");
+            var r = await CreateBackupFile(_BackupPositionWriter, _BackupPositionCsvWriter, "Position");
+            _BackupPositionWriter = r.Item1;
+            _BackupPositionCsvWriter = r.Item2;
         }
 
         public async Task LogElectrometerPointBackup(TimestampedResult r)
@@ -103,7 +107,7 @@ namespace photocon
         protected CsvWriter? _BackupPositionCsvWriter;
         protected string _FolderPath;
 
-        protected async Task CreateBackupFile(TextWriter? backupWriter, CsvWriter? backupCsvWriter, string suffix)
+        protected async Task<Tuple<TextWriter?, CsvWriter?>> CreateBackupFile(TextWriter? backupWriter, CsvWriter? backupCsvWriter, string suffix)
         {
             if (backupCsvWriter != null) await backupCsvWriter.FlushAsync();
             backupWriter?.Close();
@@ -118,6 +122,7 @@ namespace photocon
             }
             backupCsvWriter = new CsvWriter(backupWriter, CultureInfo.InvariantCulture);
             await backupCsvWriter.NextRecordAsync();
+            return new Tuple<TextWriter?, CsvWriter?>(backupWriter, backupCsvWriter);
         }
         protected static async Task LogPointBackup(CsvWriter? csvWriter, Func<Task> fallbackCreationAction, TimestampedResult r)
         {
