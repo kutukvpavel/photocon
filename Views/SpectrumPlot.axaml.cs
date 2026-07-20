@@ -62,7 +62,18 @@ public partial class SpectrumPlot : UserControl
             txtMaxDiscrepancy.Text = maxdiscr ?? NotAvailable;
             if (chkAutoscaleX.IsChecked ?? false)
             {
-                Plot1.Plot.Axes.Bottom.Min = PositionalPlot.GetAxisLimits().XRange.Min;
+                if (LastDataContext == null)
+                {
+                    Plot1.Plot.Axes.AutoScaleX();
+                }
+                else if (LastDataContext.AcquisitionParameters.IsBackwards)
+                {
+                    Plot1.Plot.Axes.Bottom.Min = PositionalPlot.GetAxisLimits().XRange.Min;
+                }
+                else
+                {
+                    Plot1.Plot.Axes.Bottom.Max = PositionalPlot.GetAxisLimits().XRange.Max;
+                }
             }
             if (chkAutoscaleY.IsChecked ?? false)
             {

@@ -23,5 +23,7 @@ namespace photocon.Models
         public bool IsBacklashCorrectionRequired => Start > End;
         [YamlIgnore]
         public float BacklashCorrection { get; set; } = 0; // nm
+
+        public bool IsBackwards => Start > End;
     }
 }
