@@ -98,6 +98,9 @@ namespace photocon
                 }
                 await cw.NextRecordAsync();
             }
+            await cw.FlushAsync();
+            await tw.FlushAsync();
+            tw.Close();
         }
 
 
