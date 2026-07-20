@@ -133,6 +133,7 @@ namespace photocon
             csvWriter!.WriteField($"{r.Timestamp:yyyy-MM-dd HH-mm-ss}");
             csvWriter!.WriteField(r.Result);
             await csvWriter!.NextRecordAsync();
+            await csvWriter!.FlushAsync();
         }
     }
 }
