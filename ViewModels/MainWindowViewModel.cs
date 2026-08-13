@@ -177,6 +177,8 @@ public class MainWindowViewModel : ViewModelBase
                 {
                     await Logger.CreateNewPositionBackupFile();
                     await Logger.CreateNewElectrometerBackupFile();
+                    Configuration.LastUsedParams = ScanParamsContext;
+                    (App.Current as App)?.SaveSettings();
                     SpectrumData.Clear();
                     SpectrumData.SetAcquisitionParameters(ScanParamsContext);
                     ElectrometerContext!.StartPoll();

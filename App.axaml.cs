@@ -54,7 +54,7 @@ public partial class App : Application
     {
         try
         {
-            File.WriteAllText(SettingsFileName, Serializer.Serialize(Configuration));   
+            File.WriteAllText(SettingsFileName, Serializer.Serialize(Configuration));
         }
         catch (Exception ex)
         {

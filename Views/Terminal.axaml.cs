@@ -114,10 +114,10 @@ public partial class Terminal : UserControl
                 txtInput.Text = string.Empty;
                 break;
             case Key.Up:
-                p = History.PeekNext();
+                p = History.PeekNext() ?? string.Empty;
                 break;
             case Key.Down:
-                p = History.PeekPrevious();
+                p = History.PeekPrevious() ?? string.Empty;
                 break;
             default: return;
         }
