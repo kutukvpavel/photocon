@@ -88,19 +88,25 @@ namespace photocon
 
 		public event EventHandler<Message>? DelimiterDataReceived;
 		public event EventHandler<Message>? DataReceived;
+		public event EventHandler? UnexpectedDisconnect;
 
 		internal bool QueueStop { get; set; }
 		internal int ReadLoopIntervalMs { get; set; }
 		public bool AutoTrimStrings { get; set; }
+		public string? HostName { get; private set; }
+		public int PortNumber { get; private set; }
 
 		public async Task<SimpleTcpClient> Connect(string hostNameOrIpAddress, int port, CancellationToken cancellation)
 		{
 			if (string.IsNullOrEmpty(hostNameOrIpAddress))
 			{
-				throw new ArgumentNullException("hostNameOrIpAddress");
+				throw new ArgumentNullException(nameof(hostNameOrIpAddress));
 			}
 
+			QueueStop = false;
 			_client = new TcpClient();
+			HostName = hostNameOrIpAddress;
+			PortNumber = port;
 			await _client.ConnectAsync(hostNameOrIpAddress, port, cancellation);
 
 			StartRxThread();
@@ -120,6 +126,8 @@ namespace photocon
 		public SimpleTcpClient Disconnect()
 		{
 			if (_client == null) { return this; }
+			QueueStop = true;
+			while (_rxThread != null) Thread.Sleep(ReadLoopIntervalMs);
 			_client.Close();
 			_client = null;
 			return this;
@@ -129,10 +137,18 @@ namespace photocon
 
 		private void ListenerLoop(object? state)
 		{
+			bool unexpected = false;
 			while (!QueueStop)
 			{
 				try
 				{
+					if (!(_client?.Connected ?? false))
+					{
+						unexpected = true;
+						_rxThread = null;
+						Disconnect();
+						break;
+					}
 					RunLoopStep();
 				}
 				catch
@@ -144,6 +160,13 @@ namespace photocon
 			}
 
 			_rxThread = null;
+
+			if (unexpected)
+			{
+				Task.Run(() => {
+					UnexpectedDisconnect?.Invoke(this, new EventArgs());
+				});
+			}
 		}
 
 		private void RunLoopStep()
@@ -161,7 +184,7 @@ namespace photocon
 				return;
 			}
 
-			List<byte> bytesReceived = new List<byte>();
+			List<byte> bytesReceived = new List<byte>(bytesAvailable);
 
 			while (c.Available > 0 && c.Connected)
 			{

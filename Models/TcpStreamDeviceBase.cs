@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Logging;
 
 namespace photocon.Models
 {
@@ -27,8 +28,10 @@ namespace photocon.Models
             Port.StringEncoder = Encoding.ASCII;
             Port.Delimiter = (byte)'\n';
             Port.DelimiterDataReceived += Socket_DataReceived;
+            Port.UnexpectedDisconnect += Socket_Disconnect;
         }
 
+        protected int ReconnectTimeout = 2000;
         protected SimpleTcpClient Port;
         protected CancellationTokenSource Cancellation = new();
 
@@ -37,6 +40,26 @@ namespace photocon.Models
             string s = e.MessageString.Trim('\r');
             TerminalLineReceived?.Invoke(this, s);
             ProcessReceivedLine(s);
+        }
+        
+        protected void Socket_Disconnect(object? sender, EventArgs e)
+        {
+            if (Port.HostName == null) return;
+            Program.LogInfo("Unexpected TCP disconnect. Reconnecting...");
+            while (!(Port.TcpClient?.Connected ?? false))
+            {
+                var cancel = new CancellationTokenSource();
+                try
+                {
+                    cancel.CancelAfter(ReconnectTimeout);
+                    Port.Connect(Port.HostName, Port.PortNumber, cancel.Token).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Program.LogExceptionWithMessage(ex, "Failed to reconnect, retrying...");
+                    Thread.Sleep(ReconnectTimeout);
+                }
+            }
         }
 
         protected async Task WriteWithTerminal(string cmd)

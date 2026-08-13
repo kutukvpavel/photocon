@@ -8,3 +8,4 @@ FluidNcPort: 2000
 BacklashCompensationNm: 0.1
 FluidNcAutoReportIntervalMs: 150
 ElectrometerPollIntervalMs: 1000
+LastUsedParams: 
