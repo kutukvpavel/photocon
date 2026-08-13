@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using photocon.Grbl;
 
@@ -38,6 +39,27 @@ namespace photocon.Models
         protected const int AutoReportOff = 0;
         protected float LastPosition = float.NaN;
         protected States LastState = States.Unknown;
+        protected uint StatusReportCounter = 0;
+        protected Task? StatusReportMonitorTask;
+
+        protected void StatusReportMonitor()
+        {
+            uint lastCounter = StatusReportCounter;
+            while (State == MotionControlStates.MovingToEnd)
+            {
+                Thread.Sleep(1000);
+                if (lastCounter == StatusReportCounter)
+                {
+                    if (State != MotionControlStates.MovingToEnd) return;
+                    Program.LogInfo("Possible motion control disconnect detected! Sending ? to refresh TCP client.");
+                    WriteWithTerminal("?").Wait();
+                }
+                else
+                {
+                    lastCounter = StatusReportCounter;
+                }
+            }
+        }
 
         protected override void ProcessReceivedLine(string s)
         {
@@ -56,6 +78,9 @@ namespace photocon.Models
         }
         protected void ProcessStatusReport(StatusReport sr)
         {
+            unchecked {
+                StatusReportCounter++;
+            }
             if (sr.State != LastState)
             {
                 if (State != MotionControlStates.Unhomed && sr.State == States.Home)
@@ -173,6 +198,7 @@ namespace photocon.Models
                 case MotionControlStates.WaitingAtStart:
                     State = MotionControlStates.MovingToEnd;
                     await WriteWithTerminal(string.Format(CultureInfo.InvariantCulture, "G1 X{0:F2} F{1:F4}", p.End, p.Speed));
+                    if (StatusReportMonitorTask?.IsCompleted ?? true) StatusReportMonitorTask = Task.Run(StatusReportMonitor);
                     break;
                 case MotionControlStates.End:
                     State = MotionControlStates.MovingToStart;
