@@ -46,61 +46,68 @@ namespace photocon
 
         public static async Task SaveSpectrum(Spectrum s, string path)
         {
-            using TextWriter tw = new StreamWriter(path);
-            using CsvWriter cw = new(tw, CultureInfo.InvariantCulture);
-            await cw.NextRecordAsync();
-            cw.WriteField(
-                $"Acquisition params: Start = {s.AcquisitionParameters.Start} nm, End = {s.AcquisitionParameters.End} nm, Speed = {s.AcquisitionParameters.Speed} nm/min"
-                );
-            await cw.NextRecordAsync();
-            cw.WriteField("Wavelength (nm)");
-            cw.WriteField("Conductance");
-            cw.WriteField("Time");
-            cw.WriteField("Conductance");
-            cw.WriteField("Time");
-            cw.WriteField("Time Discrepancy (s)");
-            await cw.NextRecordAsync();
-            int length = s.MaxLength;
-            for (int i = 0; i < length; i++)
+            using (TextWriter tw = new StreamWriter(path))
             {
-                if (s.PositionDomainPoints.Count > i)
+                using (CsvWriter cw = new(tw, CultureInfo.InvariantCulture))
                 {
-                    var pair = s.PositionDomainPoints.ElementAt(i);
-                    cw.WriteField(pair.Key);
-                    cw.WriteField(pair.Value);
+                    var positionPtsCache = s.PositionDomainPoints.ToList();
+                    var timeDomainPtsCache = s.TimeDomainPoints.ToList();
+                    var timeDiscrPtsCache = s.TimeDiscrepancyPoints.ToList();
+                    await cw.NextRecordAsync();
+                    cw.WriteField(
+                        $"Acquisition params: Start = {s.AcquisitionParameters.Start} nm, End = {s.AcquisitionParameters.End} nm, Speed = {s.AcquisitionParameters.Speed} nm/min"
+                        );
+                    await cw.NextRecordAsync();
+                    cw.WriteField("Wavelength (nm)");
+                    cw.WriteField("Conductance");
+                    cw.WriteField("Time");
+                    cw.WriteField("Conductance");
+                    cw.WriteField("Time");
+                    cw.WriteField("Time Discrepancy (s)");
+                    await cw.NextRecordAsync();
+                    int length = s.MaxLength;
+                    for (int i = 0; i < length; i++)
+                    {
+                        if (positionPtsCache.Count > i)
+                        {
+                            var pair = positionPtsCache[i];
+                            cw.WriteField(pair.Key);
+                            cw.WriteField(pair.Value);
+                        }
+                        else
+                        {
+                            cw.WriteField(string.Empty);
+                            cw.WriteField(string.Empty);
+                        }
+                        if (timeDomainPtsCache.Count > i)
+                        {
+                            var pair = timeDomainPtsCache[i];
+                            cw.WriteField(pair.Key);
+                            cw.WriteField(pair.Value);
+                        }
+                        else
+                        {
+                            cw.WriteField(string.Empty);
+                            cw.WriteField(string.Empty);
+                        }
+                        if (timeDiscrPtsCache.Count > i)
+                        {
+                            var pair = timeDiscrPtsCache[i];
+                            cw.WriteField(pair.Key);
+                            cw.WriteField(pair.Value);
+                        }
+                        else
+                        {
+                            cw.WriteField(string.Empty);
+                            cw.WriteField(string.Empty);
+                        }
+                        await cw.NextRecordAsync();
+                    }
+                    await cw.FlushAsync();
+                    await tw.FlushAsync(); //Keep cw alive while tw is still needed, because CsvHelper will dispose tw
+                    tw.Close();
                 }
-                else
-                {
-                    cw.WriteField(string.Empty);
-                    cw.WriteField(string.Empty);
-                }
-                if (s.TimeDomainPoints.Count > i)
-                {
-                    var pair = s.TimeDomainPoints.ElementAt(i);
-                    cw.WriteField(pair.Key);
-                    cw.WriteField(pair.Value);
-                }
-                else
-                {
-                    cw.WriteField(string.Empty);
-                    cw.WriteField(string.Empty);
-                }
-                if (s.TimeDiscrepancyPoints.Count > i)
-                {
-                    var pair = s.TimeDiscrepancyPoints.ElementAt(i);
-                    cw.WriteField(pair.Key);
-                    cw.WriteField(pair.Value);
-                }
-                else
-                {
-                    cw.WriteField(string.Empty);
-                    cw.WriteField(string.Empty);
-                }
-                await cw.NextRecordAsync();
             }
-            await cw.FlushAsync();
-            await tw.FlushAsync();
-            tw.Close();
         }
 
 

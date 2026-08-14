@@ -19,6 +19,7 @@ public class Settings
     public float BacklashCompensationNm { get; set; } = 0.1f; // nm
     public int FluidNcAutoReportIntervalMs { get; set; } = 150; // ms
     public int ElectrometerPollIntervalMs { get; set; } = 1000; //ms
+    public bool LogTerminalLines { get; set; } = true;
 
     public ScanParams? LastUsedParams { get; set; }
 }

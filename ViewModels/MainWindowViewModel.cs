@@ -15,7 +15,9 @@ public class MainWindowViewModel : ViewModelBase
         AcqiringSpectrum,
         Finished
     }
-    protected const string NotAvailable = "N/A";
+    protected const string NotAvailableString = "N/A";
+    protected const string SaveSpectrumString = "Save Spectrum";
+    protected const string SavingSpectrumString = "Saving...";
 
     protected MotionControlStates _InternalState = MotionControlStates.Unhomed;
     protected UiStates _InternalUiState = UiStates.NotConnected;
@@ -39,6 +41,7 @@ public class MainWindowViewModel : ViewModelBase
     public TerminalViewModel GrblTerminalContext { get; } = new();
     public TerminalViewModel ScpiTerminalContext { get; } = new();
     public bool IsConnected => (_InternalUiState != UiStates.NotConnected) && (_InternalUiState != UiStates.Connecting);
+    public string SaveButtonString { get; private set; } = SaveSpectrumString;
     public Spectrum SpectrumData { get; }
     public string StateString
     {
@@ -46,8 +49,8 @@ public class MainWindowViewModel : ViewModelBase
         {
             return _InternalUiState switch
             {
-                UiStates.Ready or UiStates.AcqiringSpectrum => Enum.GetName(_InternalState) ?? NotAvailable,
-                _ => Enum.GetName(_InternalUiState) ?? NotAvailable
+                UiStates.Ready or UiStates.AcqiringSpectrum => Enum.GetName(_InternalState) ?? NotAvailableString,
+                _ => Enum.GetName(_InternalUiState) ?? NotAvailableString
             };
         }
     }
@@ -64,10 +67,10 @@ public class MainWindowViewModel : ViewModelBase
                     MotionControlStates.Homed or MotionControlStates.End => "Move to Start",
                     MotionControlStates.WaitingAtStart => "Acquire Spectrum!",
                     MotionControlStates.Malfunction => "Reset",
-                    _ => NotAvailable
+                    _ => NotAvailableString
                 },
                 UiStates.Finished => "New Spectrum",
-                _ => NotAvailable
+                _ => NotAvailableString
             };
         }
     }
@@ -200,7 +203,11 @@ public class MainWindowViewModel : ViewModelBase
     public async Task SaveSpectrum(string path)
     {
         if (!CanSaveSpectrum) return;
+        SaveButtonString = SavingSpectrumString;
+        this.RaisePropertyChanged(nameof(SaveButtonString));
         await SaveSpectrumInternal(path);
+        SaveButtonString = SaveSpectrumString;
+        this.RaisePropertyChanged(nameof(SaveButtonString));
     }
     public async Task Abort()
     {
@@ -210,7 +217,15 @@ public class MainWindowViewModel : ViewModelBase
 
     protected async Task SaveSpectrumInternal(string path)
     {
-        await DataLogger.SaveSpectrum(SpectrumData, path);
+        try
+        {
+            await DataLogger.SaveSpectrum(SpectrumData, path);
+        }
+        catch (Exception ex)
+        {
+            Program.LogExceptionWithMessage(ex, "Error during saving of the spectrum");
+            
+        }
     }
     protected void UpdateUiStates()
     {

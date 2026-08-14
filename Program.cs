@@ -16,7 +16,7 @@ static class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static async Task Main(string[] args) 
+    public static void Main(string[] args) 
     {
         try
         {
@@ -24,9 +24,7 @@ static class Program
         }
         catch (Exception ex)
         {
-            Logger.Fatal(ex);
-            await MessageBoxManager.GetMessageBoxStandard("Photocon: Fatal Error", $"Fatal error ocurred, see logs: {ex.Message}")
-                .ShowWindowAsync();
+            LogFatalExceptionWithWindow(ex);            
         }
     } 
 
@@ -37,6 +35,24 @@ static class Program
             .WithInterFont()
             .LogToTrace()
             .UseReactiveUI();
+
+    public static void LogFatalExceptionWithWindow(Exception ex)
+    {
+        Logger.Fatal(ex);
+        ShowErrorWindow(ex).Wait();
+    }
+
+    public static async Task LogExceptionWithWindow(Exception ex, string? message = null)
+    {
+        LogException(ex, message);
+        await ShowErrorWindow(ex);
+    }
+
+    public static async Task ShowErrorWindow(Exception ex, bool fatal = false)
+    {
+        await MessageBoxManager.GetMessageBoxStandard($"Photocon: {(fatal ? "Fatal " : "")}Error", $"{(fatal ? "Fatal e" : "E")}rror ocurred: {ex.Message}")
+                .ShowWindowAsync();
+    }
 
     public static void LogInfoWithMessage(string s)
     {

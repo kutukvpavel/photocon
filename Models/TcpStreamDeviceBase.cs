@@ -65,6 +65,7 @@ namespace photocon.Models
         protected async Task WriteWithTerminal(string cmd)
         {
             TerminalLineReceived?.Invoke(this, cmd);
+            Program.LogTerminal(cmd);
             await Port.WriteLine(cmd);
         }
 

@@ -75,6 +75,7 @@ namespace photocon.Models
                     break;
                 default: break;
             }
+            Program.LogTerminal(s);
         }
         protected void ProcessStatusReport(StatusReport sr)
         {
