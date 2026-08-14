@@ -26,6 +26,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         Configuration = cfg;
         ScanParamsContext.BacklashCorrection = Configuration.BacklashCompensationNm;
+        if (cfg.LastUsedParams != null)
+        {
+            ScanParamsContext.Start = cfg.LastUsedParams.Start;
+            ScanParamsContext.End = cfg.LastUsedParams.End;
+            ScanParamsContext.Speed = cfg.LastUsedParams.Speed;
+        }
         Logger = new(Environment.CurrentDirectory);
         SpectrumData = new(ScanParamsContext);
         GrblTerminalContext.SendRequested += OnGrblManualSendRequsted;
