@@ -41,7 +41,18 @@ public class MainWindowViewModel : ViewModelBase
     public TerminalViewModel GrblTerminalContext { get; } = new();
     public TerminalViewModel ScpiTerminalContext { get; } = new();
     public bool IsConnected => (_InternalUiState != UiStates.NotConnected) && (_InternalUiState != UiStates.Connecting);
-    public string SaveButtonString { get; private set; } = SaveSpectrumString;
+    protected bool _IsSaveInProgress = false;
+    public bool IsSaveInProgress 
+    {
+        get => _IsSaveInProgress;
+        set {
+            if (value == _IsSaveInProgress) return;
+            _IsSaveInProgress = value;
+            this.RaisePropertyChanged(nameof(IsSaveInProgress));
+            this.RaisePropertyChanged(nameof(SaveButtonString));
+        }
+    }
+    public string SaveButtonString => _IsSaveInProgress ? SavingSpectrumString : SaveSpectrumString;
     public Spectrum SpectrumData { get; }
     public string StateString
     {
@@ -203,11 +214,9 @@ public class MainWindowViewModel : ViewModelBase
     public async Task SaveSpectrum(string path)
     {
         if (!CanSaveSpectrum) return;
-        SaveButtonString = SavingSpectrumString;
-        this.RaisePropertyChanged(nameof(SaveButtonString));
+        IsSaveInProgress = true;
         await SaveSpectrumInternal(path);
-        SaveButtonString = SaveSpectrumString;
-        this.RaisePropertyChanged(nameof(SaveButtonString));
+        IsSaveInProgress = false;
     }
     public async Task Abort()
     {

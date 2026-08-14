@@ -65,6 +65,7 @@ namespace photocon.Models
             if ((PollSemaphore?.CurrentCount ?? -1) != 0) return;
             double reading = ConvertReading(s);
             if (!double.IsNaN(reading)) ResultReceived?.Invoke(this, new TimestampedResult(reading));
+            Program.LogTerminal(s);
             try
             {
                 PollSemaphore!.Release();
