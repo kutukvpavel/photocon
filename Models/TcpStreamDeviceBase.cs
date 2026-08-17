@@ -62,6 +62,7 @@ namespace photocon.Models
             }
         }
 
+
         protected async Task WriteWithTerminal(string cmd)
         {
             TerminalLineReceived?.Invoke(this, cmd);
@@ -80,6 +81,10 @@ namespace photocon.Models
         public async Task SendManualCommand(string cmd)
         {
             await WriteWithTerminal(cmd);
+        }
+        public void RefreshConnectionStatus()
+        {
+            Port.RefreshIsConnected();
         }
     }
 }

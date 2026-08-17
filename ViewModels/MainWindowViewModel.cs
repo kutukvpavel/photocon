@@ -145,6 +145,8 @@ public class MainWindowViewModel : ViewModelBase
                     MotionControlContext.PositionChanged += OnPositionChanged;
                     MotionControlContext.StateChanged += OnStateChanged;
                     MotionControlContext.TerminalLineReceived += OnMotionTerminal;
+                    MotionControlContext.UnexpectedDisconnect += OnUnexpectedDisconnect;
+
                     success = true;
                 }
                 catch (Exception ex)
@@ -252,6 +254,10 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(CanEditParameters));
         this.RaisePropertyChanged(nameof(IsBusy));
         this.RaisePropertyChanged(nameof(CanAbort));
+    }
+    protected void OnUnexpectedDisconnect(object? sender, EventArgs e)
+    {
+        ElectrometerContext?.RefreshConnectionStatus();
     }
     protected void OnPositionChanged(object? sender, TimestampedResult p)
     {

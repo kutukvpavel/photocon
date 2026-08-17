@@ -151,9 +151,13 @@ namespace photocon
 					}
 					RunLoopStep();
 				}
-				catch
+				catch (SocketException ex)
 				{
-
+					Program.LogException(ex, "Tcp socket exception");
+				}
+				catch (Exception ex)
+				{
+					Program.LogException(ex, "Tcp client error");
 				}
 
 				System.Threading.Thread.Sleep(ReadLoopIntervalMs);
@@ -224,6 +228,29 @@ namespace photocon
 			{
 				Message m = new Message(msg, client, StringEncoder, Delimiter, AutoTrimStrings);
 				DataReceived(this, m);
+			}
+		}
+
+		public bool RefreshIsConnected()
+		{
+			if (_client == null) return false;
+			try
+			{
+				if (_client.Client.Poll(0, SelectMode.SelectRead))
+				{
+					byte[] checkBuffer = new byte[1];
+					
+					// Peek the stream. If it returns 0 bytes, the connection is closed.
+					if (_client.Client.Receive(checkBuffer, SocketFlags.Peek) == 0)
+					{
+						return false; 
+					}
+				}
+				return true;
+			}
+			catch (SocketException)
+			{
+				return false;
 			}
 		}
 

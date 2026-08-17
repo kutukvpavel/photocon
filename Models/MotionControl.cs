@@ -22,6 +22,7 @@ namespace photocon.Models
     {
         public event EventHandler<TimestampedResult>? PositionChanged;
         public event EventHandler<MotionControlStates>? StateChanged;
+        public event EventHandler? UnexpectedDisconnect;
 
         public static async Task<MotionControl?> Create(string host, int port, int autoReportInterval, int timeout = 2000)
         {
@@ -34,6 +35,7 @@ namespace photocon.Models
             : base(port)
         {
             WriteWithTerminal($"$Report/Interval={autoReportInterval}").Wait();
+            Port.UnexpectedDisconnect += (o, e) => UnexpectedDisconnect?.Invoke(this, e);
         }
 
         protected const int AutoReportOff = 0;
@@ -53,6 +55,7 @@ namespace photocon.Models
                     if (State != MotionControlStates.MovingToEnd) return;
                     Program.LogInfo("Possible motion control disconnect detected! Sending ? to refresh TCP client.");
                     WriteWithTerminal("?").Wait();
+                    RefreshConnectionStatus();
                 }
                 else
                 {
