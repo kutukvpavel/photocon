@@ -4,3 +4,4 @@ bin/
 logs/
 terminal_logs/
 backup/
+settings.yaml

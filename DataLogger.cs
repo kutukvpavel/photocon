@@ -105,7 +105,6 @@ namespace photocon
                     }
                     await cw.FlushAsync();
                     await tw.FlushAsync(); //Keep cw alive while tw is still needed, because CsvHelper will dispose tw
-                    tw.Close();
                 }
             }
         }
