@@ -12,12 +12,12 @@ namespace photocon.Views;
 
 public partial class Terminal : UserControl
 {
-    public class DropOutDistinctStack<T> : List<T> where T : IEquatable<T>
+    public class DropOutDistinctStack<T> : LinkedList<T> where T : IEquatable<T>
     {
         private readonly int _capacity;
-        protected int _peekIndex = 0;
+        protected LinkedListNode<T>? _current = null;
 
-        public DropOutDistinctStack(int capacity)
+        public DropOutDistinctStack(int capacity) : base()
         {
             _capacity = capacity;
         }
@@ -31,52 +31,46 @@ public partial class Terminal : UserControl
                     return;
                 }
             }
-
             if (this.Count >= _capacity)
             {
-                this.RemoveAt(Count - 1);
+                if ((_current != null) && (this.Last == _current))
+                {
+                    _current = this.Last.Previous;
+                }
+                this.RemoveLast();
             }
-
-            Add(item);
+            AddFirst(item);
         }
 
         public T? PeekNext()
         {
-            if (_peekIndex >= Count) 
+            if (_current == null)
             {
-                _peekIndex = Count;
-                return (this.LastOrDefault() == null) ? default : this.Last();
+                _current = this.First;
             }
-            else if (_peekIndex < 0)
+            else if (_current.Next != null)
             {
-                _peekIndex = 0;
+                _current = _current.Next;
             }
-            return this[_peekIndex++];
+            return (_current == null) ? default : _current.Value;
         }
 
         public T? PeekPrevious()
         {
-            if (_peekIndex >= Count)
-            {
-                _peekIndex = Count;
-                return (this.LastOrDefault() == null) ? default : this.Last();   
-            }
-            else if (_peekIndex < 0)
-            {
-                _peekIndex = 0;
-            }
-            if (_peekIndex == 0) return default;
-            return this[--_peekIndex];
+            if (_current == null) return default;
+            _current = _current.Previous;
+            return (_current == null) ? default : _current.Value;
         }
 
         public void ResetPeek()
         {
-            _peekIndex = 0;
+            _current = null;
         }
     }
 
     protected TerminalViewModel? LastDataContext = null;
     protected DropOutDistinctStack<string> History = new(100);
+    protected string? IncompleteLine = null;
 
     public Terminal()
     {
@@ -89,6 +83,8 @@ public partial class Terminal : UserControl
         History.Push(txtInput.Text);
         History.ResetPeek();
         (DataContext as TerminalViewModel)?.RequestSending();
+        txtInput.Text = string.Empty;
+        IncompleteLine = null;
     }
 
     protected void DataContext_Changed(object? sender, EventArgs e)
@@ -111,13 +107,18 @@ public partial class Terminal : UserControl
         {
             case Key.Enter:
                 Send_Click(this, new RoutedEventArgs());
-                txtInput.Text = string.Empty;
                 break;
             case Key.Up:
-                p = History.PeekNext() ?? string.Empty;
+                IncompleteLine = txtInput.Text.Length > 0 ? txtInput.Text : null;
+                p = History.PeekNext();
                 break;
             case Key.Down:
-                p = History.PeekPrevious() ?? string.Empty;
+                p = History.PeekPrevious();
+                if (p == null && IncompleteLine != null)
+                {
+                    p = IncompleteLine;
+                    IncompleteLine = null;
+                }
                 break;
             default: return;
         }
